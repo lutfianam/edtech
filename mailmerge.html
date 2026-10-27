@@ -1,0 +1,2248 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mail Merge Sekali Klik - Modul Web Interaktif Informatika Kelas X</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tone.js for Audio Feedback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            navy: '#1e3a8a',
+                            royal: '#2563eb',
+                            emerald: '#059669',
+                            amber: '#d97706',
+                            rose: '#e11d48'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #f1f5f9; -webkit-tap-highlight-color: transparent; }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .fade-in { animation: fadeIn 0.25s ease-in-out; }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* Ribbon UI */
+        .ribbon-tab {
+            padding: 5px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            transition: all 0.15s;
+        }
+        .ribbon-tab.active {
+            background-color: #ffffff;
+            color: #1e3a8a;
+            font-weight: 700;
+            border-top: 2px solid #2563eb;
+            border-left: 1px solid #cbd5e1;
+            border-right: 1px solid #cbd5e1;
+            margin-bottom: -1px;
+            z-index: 10;
+        }
+        .ribbon-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-align: center;
+            border: 1px solid transparent;
+            cursor: pointer;
+            user-select: none;
+        }
+        .ribbon-btn:active { background-color: #e2e8f0; }
+        .ribbon-btn.disabled { opacity: 0.35; pointer-events: none; }
+        .pulse-btn { animation: pulseBorder 1.5s infinite; }
+        @keyframes pulseBorder {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6); }
+            70% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; padding: 20px; backdrop-filter: blur(3px);
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-800">
+
+<div class="app-container" id="app">
+    <!-- Header App (Aligned with Wireframe Layar 1 & 2) -->
+    <header class="bg-brand-navy text-white px-4 py-3 shadow-md z-30 sticky top-0 flex justify-between items-center border-b border-blue-900">
+        <div class="flex items-center gap-2.5">
+            <button id="btn-header-left" onclick="handleHeaderLeftClick()" class="w-8 h-8 rounded-lg bg-blue-900/60 hover:bg-blue-800 flex items-center justify-center text-white transition-colors">
+                <i id="icon-header-left" class="fa-solid fa-bars text-sm"></i>
+            </button>
+            <div>
+                <h1 class="font-bold text-xs sm:text-sm tracking-wide leading-tight" id="header-title">Mail Merge Sekali Klik</h1>
+                <p class="text-[9px] text-blue-200" id="header-subtitle">Informatika Kelas X • SMA Islam Sudirman</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <!-- Help Button (?) Presisi Wireframe -->
+            <button onclick="showHelpModal()" title="Bantuan & Petunjuk" class="w-8 h-8 rounded-full bg-blue-800/80 hover:bg-blue-700 text-amber-300 font-bold text-xs flex items-center justify-center border border-blue-400/30 transition-all active:scale-95 shadow">
+                <i class="fa-solid fa-circle-question text-base"></i>
+            </button>
+            <!-- Badge Counter Pill -->
+            <div onclick="scrollToBadges()" class="cursor-pointer bg-blue-900/90 hover:bg-blue-800 rounded-full px-2.5 py-1 text-[11px] font-bold flex items-center gap-1.5 border border-amber-400/40 shadow-inner text-amber-300 transition-all">
+                <i class="fa-solid fa-award text-amber-400 text-xs"></i>
+                <span id="badge-count">0/6</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Bar overall -->
+    <div class="h-1.5 w-full bg-slate-200 sticky top-[53px] z-30">
+        <div id="progress-bar" class="h-full bg-brand-royal transition-all duration-500 w-0"></div>
+    </div>
+
+    <!-- Container Utama Content -->
+    <main id="main-content" class="flex-1 bg-slate-50 p-4 pb-24 overflow-y-auto relative">
+        <!-- Views injected via JS -->
+    </main>
+
+    <!-- Global Modal Pop-up -->
+    <div id="modal-container" class="hidden modal-overlay fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center slide-up border border-slate-100">
+            <div id="modal-icon" class="text-5xl mb-3"></div>
+            <h3 id="modal-title" class="text-lg font-bold text-brand-navy mb-1.5"></h3>
+            <p id="modal-desc" class="text-xs text-slate-600 mb-5 leading-relaxed whitespace-pre-line"></p>
+            <button id="modal-btn" class="w-full bg-brand-royal text-white font-semibold py-2.5 rounded-xl shadow hover:bg-blue-700 active:scale-[0.98] transition-all text-xs">
+                Lanjutkan
+            </button>
+        </div>
+    </div>
+
+    <!-- Help & Guide Modal (?) -->
+    <div id="help-modal" class="hidden modal-overlay fade-in">
+        <div class="bg-white rounded-2xl shadow-2xl p-5 max-w-xs w-full slide-up border border-slate-100 relative">
+            <button onclick="closeHelpModal()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="flex items-center gap-2 text-brand-navy mb-3">
+                <i class="fa-solid fa-circle-question text-xl text-amber-500"></i>
+                <h3 class="font-bold text-sm">Pusat Bantuan & Petunjuk</h3>
+            </div>
+            <div id="help-content" class="text-xs text-slate-600 space-y-2.5 leading-relaxed">
+                <!-- Injected contextually -->
+            </div>
+            <button onclick="closeHelpModal()" class="w-full mt-4 bg-brand-navy text-white font-semibold py-2 rounded-xl text-xs">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- STATE MANAGEMENT SYSTEM ---
+    const state = {
+        progress: {
+            unit0: false,
+            unit1: false,
+            unit2: false,
+            unit3: false,
+            unit4: false,
+            unit5: false
+        },
+        unit0: { target: '', confidence: '', quizScore: null },
+        unit1: { matchState: {}, quizScore: null },
+        unit2: { errorsFixed: [], checklist: [false, false, false, false, false] },
+        unit3: { step: 0, mistakes: 0, orderState: [] },
+        unit4: { solvedCases: [false, false, false] },
+        unit5: { checklist: [false, false, false, false], reflection: { plan: '', diff: '', action: '' } }
+    };
+
+    // Badge Definitions (Presisi Wireframe Lampiran A)
+    const badgeDefs = [
+        { id: 'unit0', name: 'Pelopor SRL', icon: 'fa-bullseye', color: 'from-purple-600 to-indigo-600', desc: 'Menetapkan target belajar & menyelesaikan diagnostik.' },
+        { id: 'unit1', name: 'Paham 3 Komponen', icon: 'fa-puzzle-piece', color: 'from-indigo-600 to-blue-600', desc: 'Menguasai konsep Master Document, Data Source & Merge Field.' },
+        { id: 'unit2', name: 'Ahli Data Excel', icon: 'fa-table', color: 'from-emerald-600 to-teal-600', desc: 'Memperbaiki tabel data Excel & format NIS text.' },
+        { id: 'unit3', name: 'Master 7 Langkah', icon: 'fa-file-word', color: 'from-blue-600 to-cyan-600', desc: 'Menyelesaikan simulasi 7 langkah Mailings Word.' },
+        { id: 'unit4', name: 'Dokter Mail Merge', icon: 'fa-stethoscope', color: 'from-amber-600 to-orange-600', desc: 'Menganalisis & memperbaiki 3 kasus gagal gabung.' },
+        { id: 'unit5', name: 'Penguasaan Total', icon: 'fa-trophy', color: 'from-rose-600 to-pink-600', desc: 'Menyelesaikan proyek Hari Santri & refleksi SRL.' }
+    ];
+
+    let currentHelpKey = 'general';
+
+    // Synthesize Sound Effects with Tone.js
+    let synth = null;
+    function playSound(type) {
+        try {
+            if (!synth) synth = new Tone.Synth().toDestination();
+            Tone.start();
+            if (type === 'success') {
+                const now = Tone.now();
+                synth.triggerAttackRelease("C5", "8n", now);
+                synth.triggerAttackRelease("G5", "8n", now + 0.15);
+            } else if (type === 'error') {
+                synth.triggerAttackRelease("A3", "8n");
+            } else if (type === 'click') {
+                synth.triggerAttackRelease("E5", "16n");
+            } else if (type === 'badge') {
+                const now = Tone.now();
+                synth.triggerAttackRelease("C5", "16n", now);
+                synth.triggerAttackRelease("E5", "16n", now + 0.1);
+                synth.triggerAttackRelease("G5", "16n", now + 0.2);
+                synth.triggerAttackRelease("C6", "8n", now + 0.3);
+            }
+        } catch(e) {}
+    }
+
+    // --- UNIT DATA DEFINITION ---
+    const units = [
+        { id: 'unit0', title: 'Mulai dari Sini', desc: '8 menit • Diagnostik & Target (SRL)', icon: 'fa-bullseye', color: 'text-purple-600', bg: 'bg-purple-100' },
+        { id: 'unit1', title: 'Mengenal Mail Merge', desc: '10 menit • Konsep Dasar & 3 Komponen', icon: 'fa-puzzle-piece', color: 'text-indigo-600', bg: 'bg-indigo-100' },
+        { id: 'unit2', title: 'Data Excel', desc: '12 menit • Struktur Tabel & Sumber Data', icon: 'fa-table', color: 'text-emerald-600', bg: 'bg-emerald-100' },
+        { id: 'unit3', title: 'Dokumen & Merge Field', desc: '15 menit • Simulasi Word 7 Langkah', icon: 'fa-file-word', color: 'text-blue-600', bg: 'bg-blue-100' },
+        { id: 'unit4', title: 'Pratinjau & Perbaikan', desc: '15 menit • Klinik Kesalahan (Troubleshoot)', icon: 'fa-stethoscope', color: 'text-amber-600', bg: 'bg-amber-100' },
+        { id: 'unit5', title: 'Proyek & Refleksi', desc: '10 menit • Proyek Hari Santri & SRL', icon: 'fa-certificate', color: 'text-rose-600', bg: 'bg-rose-100' }
+    ];
+
+    // Helpers
+    const mainContent = document.getElementById('main-content');
+    const headerTitle = document.getElementById('header-title');
+    const headerSubtitle = document.getElementById('header-subtitle');
+    const progressBar = document.getElementById('progress-bar');
+    const badgeCount = document.getElementById('badge-count');
+    
+    const modalContainer = document.getElementById('modal-container');
+    const modalIcon = document.getElementById('modal-icon');
+    const modalTitle = document.getElementById('modal-title');
+    const modalDesc = document.getElementById('modal-desc');
+    const modalBtn = document.getElementById('modal-btn');
+
+    function updateHeader(title, subtitle, showBack = true, helpKey = 'general') {
+        headerTitle.textContent = title;
+        headerSubtitle.textContent = subtitle;
+        currentHelpKey = helpKey;
+        const iconLeft = document.getElementById('icon-header-left');
+        if (showBack) {
+            iconLeft.className = 'fa-solid fa-arrow-left text-sm';
+        } else {
+            iconLeft.className = 'fa-solid fa-bars text-sm';
+        }
+    }
+
+    function handleHeaderLeftClick() {
+        const iconLeft = document.getElementById('icon-header-left');
+        if (iconLeft.classList.contains('fa-arrow-left')) {
+            navigate('home');
+        } else {
+            showNavMenu();
+        }
+    }
+
+    function showNavMenu() {
+        playSound('click');
+        showModal(
+            '<i class="fa-solid fa-compass text-brand-royal text-5xl"></i>',
+            'Peta Navigasi Modul',
+            'Kamu dapat berpindah antar-unit pembelajaran kapan saja. Pilihlah unit dari daftar di Dashboard.',
+            () => navigate('home')
+        );
+    }
+
+    function updateProgress() {
+        const completed = Object.values(state.progress).filter(Boolean).length;
+        const total = 6;
+        const percent = Math.round((completed / total) * 100);
+        progressBar.style.width = `${percent}%`;
+        badgeCount.textContent = `${completed}/${total}`;
+    }
+
+    function showModal(iconHTML, title, desc, onClick) {
+        playSound('badge');
+        modalIcon.innerHTML = iconHTML;
+        modalTitle.textContent = title;
+        modalDesc.textContent = desc;
+        modalContainer.classList.remove('hidden');
+        modalBtn.onclick = () => {
+            modalContainer.classList.add('hidden');
+            if (onClick) onClick();
+        };
+    }
+
+    function showHelpModal() {
+        playSound('click');
+        const helpBox = document.getElementById('help-content');
+        const helpModal = document.getElementById('help-modal');
+        
+        const guides = {
+            general: `
+                <p><strong>Mail Merge Sekali Klik</strong> adalah modul web interaktif Informatika Kelas X SMA Islam Sudirman Tembarak.</p>
+                <ul class="list-disc pl-4 space-y-1 mt-1 text-[11px]">
+                    <li>Selesaikan Unit 0 sampai 5 secara berurutan.</li>
+                    <li>Kumpulkan 6 Lencana Penguasaan Kompetensi.</li>
+                    <li>Manfaatkan tombol <em>Petunjuk</em> pada simulasi jika menemui kesulitan.</li>
+                </ul>
+            `,
+            unit0: `
+                <p><strong>Petunjuk Unit 0:</strong></p>
+                <p>Jawab kuis diagnostik 5 soal untuk mengukur pemahaman awalmu, lalu pilih target belajar mandiri (SRL) hari ini.</p>
+            `,
+            unit1: `
+                <p><strong>Petunjuk Unit 1:</strong></p>
+                <p>Cocokkan 3 Komponen Mail Merge (Master Document = Word, Data Source = Excel, Merge Field = Penanda « »). Syarat lulus kuis minimal 4 dari 5 benar.</p>
+            `,
+            unit2: `
+                <p><strong>Petunjuk Unit 2:</strong></p>
+                <p>Klik pada sel bergaris merah berkedip di tabel Excel untuk memicu perbaikan otomatis (hapus baris judul atas, perbaiki NIS text, hapus baris kosong).</p>
+            `,
+            unit3: `
+                <p><strong>Petunjuk Unit 3:</strong></p>
+                <p>Ikuti simulasi 7 langkah Mail Merge pada pita menu Word. Jika salah mengeklik, tombol <em>Petunjuk</em> akan memberikan bantuan bertingkat (3 Level Scaffolding).</p>
+            `,
+            unit4: `
+                <p><strong>Petunjuk Unit 4:</strong></p>
+                <p>Analisislah 3 kasus gagal gabung Mail Merge dan tentukan diagnosis penyebab serta solusinya dengan tepat.</p>
+            `,
+            unit5: `
+                <p><strong>Petunjuk Unit 5:</strong></p>
+                <p>Lengkapi daftar periksa proyek pembuatan sertifikat Hari Santri secara berpasangan dan isi jurnal refleksi akhir SRL.</p>
+            `
+        };
+
+        helpBox.innerHTML = guides[currentHelpKey] || guides.general;
+        helpModal.classList.remove('hidden');
+    }
+
+    function closeHelpModal() {
+        playSound('click');
+        document.getElementById('help-modal').classList.add('hidden');
+    }
+
+    function scrollToBadges() {
+        playSound('click');
+        if (window.location.hash !== '#home') navigate('home');
+        setTimeout(() => {
+            document.getElementById('section-badges')?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+    }
+
+    function showBadgeDetail(badgeId) {
+        playSound('click');
+        const badge = badgeDefs.find(b => b.id === badgeId);
+        const isUnlocked = state.progress[badgeId];
+        
+        if (isUnlocked) {
+            showModal(
+                `<div class="w-16 h-16 rounded-2xl bg-gradient-to-br ${badge.color} text-amber-300 flex items-center justify-center text-3xl mx-auto shadow-lg"><i class="fa-solid ${badge.icon}"></i></div>`,
+                `Lencana: ${badge.name}`,
+                `SELAMAT! Kamu telah menguasai lencana ini.\n\nKriteria Terpenuhi: ${badge.desc}`,
+                null
+            );
+        } else {
+            showModal(
+                `<div class="w-16 h-16 rounded-2xl bg-slate-200 text-slate-400 flex items-center justify-center text-3xl mx-auto"><i class="fa-solid fa-lock"></i></div>`,
+                `Lencana: ${badge.name} (Terkunci)`,
+                `Selesaikan ${badge.name} pada unit terkait untuk membuka lencana ini!\n\nSyarat: ${badge.desc}`,
+                () => navigate(badgeId)
+            );
+        }
+    }
+
+    function unlockUnit(unitId) {
+        state.progress[unitId] = true;
+        updateProgress();
+    }
+
+    // --- NAVIGATION CONTROLLER ---
+    function navigate(view) {
+        playSound('click');
+        window.scrollTo(0,0);
+        if (view === 'home') renderHome();
+        else if (view === 'unit0') renderUnit0();
+        else if (view === 'unit1') renderUnit1();
+        else if (view === 'unit2') renderUnit2();
+        else if (view === 'unit3') renderUnit3();
+        else if (view === 'unit4') renderUnit4();
+        else if (view === 'unit5') renderUnit5();
+    }
+
+    // ==========================================
+    // 1. HOME DASHBOARD (PRESISE WIREFRAME LAYAR 1)
+    // ==========================================
+    function renderHome() {
+        updateHeader('Mail Merge Sekali Klik', 'Peta Belajar Modul', false, 'general');
+        const completedCount = Object.values(state.progress).filter(Boolean).length;
+        const percent = Math.round((completedCount / 6) * 100);
+
+        // Determine next recommended unit
+        let nextUnitTitle = 'Unit 0: Mulai dari Sini';
+        for (let i = 0; i < units.length; i++) {
+            if (!state.progress[units[i].id]) {
+                nextUnitTitle = `Unit ${i}: ${units[i].title}`;
+                break;
+            }
+        }
+        if (completedCount === 6) nextUnitTitle = 'Seluruh Unit Tuntas!';
+
+        let html = `
+            <div class="fade-in">
+                <!-- Banner Target Belajar (Aligned Wireframe Layar 1) -->
+                <div class="bg-gradient-to-r from-brand-navy to-brand-royal text-white p-4 rounded-2xl shadow-md mb-5 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <span class="bg-blue-400/30 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-300/30 mb-2 inline-block">
+                            Informatika Kelas X • Fase E
+                        </span>
+                        <h2 class="font-extrabold text-sm sm:text-base mb-1">Halo, siswa Kelas X-1!</h2>
+                        <p class="text-xs text-blue-100 mb-2">Target hari ini: <span class="font-bold text-amber-300">${nextUnitTitle}</span></p>
+                        
+                        <!-- Progress Bar Wireframe -->
+                        <div class="bg-black/20 p-2 rounded-xl backdrop-blur-sm border border-white/10 mt-3">
+                            <div class="flex justify-between items-center text-[11px] font-bold mb-1">
+                                <span class="text-blue-200">Kemajuan Modul</span>
+                                <span class="text-amber-400">${percent}%</span>
+                            </div>
+                            <div class="w-full bg-blue-950/60 rounded-full h-2 overflow-hidden border border-blue-400/30">
+                                <div class="bg-gradient-to-r from-amber-400 to-yellow-300 h-2 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-envelope-open-text absolute -right-3 -bottom-3 text-7xl text-white/10"></i>
+                </div>
+
+                <!-- Unit List -->
+                <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-3 px-1 flex justify-between items-center">
+                    <span>Daftar Unit Belajar</span>
+                    <span class="text-[10px] text-slate-500 font-normal">Urut dari Unit 0</span>
+                </h3>
+
+                <div class="space-y-3">
+        `;
+
+        units.forEach((unit, index) => {
+            const isCompleted = state.progress[unit.id];
+            let statusBadge = `<div class="text-brand-royal text-xs font-bold bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 shadow-sm flex items-center gap-1"><span>Lanjutkan</span> <i class="fa-solid fa-chevron-right text-[10px]"></i></div>`;
+            let cardClass = 'bg-white border border-slate-200 shadow-sm hover:border-blue-400';
+            let iconColor = unit.color;
+            let iconBg = unit.bg;
+
+            if (isCompleted) {
+                statusBadge = `<div class="bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-lg text-xs flex items-center gap-1"><i class="fa-solid fa-check"></i> <span>Selesai</span></div>`;
+                cardClass = 'bg-emerald-50/60 border border-emerald-200 shadow-sm';
+                iconColor = 'text-emerald-700';
+                iconBg = 'bg-emerald-100';
+            }
+
+            html += `
+                <div onclick="navigate('${unit.id}')" class="flex items-center p-3.5 rounded-2xl ${cardClass} transition-all cursor-pointer active:scale-[0.99]">
+                    <div class="w-11 h-11 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center mr-3.5 shrink-0 shadow-inner">
+                        <i class="fa-solid ${unit.icon} text-lg"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-xs text-slate-800 mb-0.5 truncate">Unit ${index}: ${unit.title}</h4>
+                        <p class="text-[11px] text-slate-500 truncate">${unit.desc}</p>
+                    </div>
+                    <div class="ml-2 shrink-0">${statusBadge}</div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+
+                <!-- Seksi "Lencana Saya" (Presisi Wireframe Layar 1) -->
+                <div id="section-badges" class="mt-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                                <i class="fa-solid fa-award text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider">Lencana Saya</h3>
+                                <p class="text-[10px] text-slate-500">6 Lencana Penguasaan Kompetensi</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-extrabold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">${completedCount}/6 Terbuka</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+        `;
+
+        badgeDefs.forEach((badge, idx) => {
+            const isUnlocked = state.progress[badge.id];
+            if (isUnlocked) {
+                html += `
+                    <div onclick="showBadgeDetail('${badge.id}')" class="bg-gradient-to-br ${badge.color} text-white p-3 rounded-xl shadow-md border border-white/20 cursor-pointer hover:scale-[1.02] transition-transform relative overflow-hidden">
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center text-amber-300 text-sm font-bold shadow-inner">
+                                <i class="fa-solid ${badge.icon}"></i>
+                            </div>
+                            <span class="text-[9px] font-bold bg-emerald-400 text-emerald-950 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-check text-[8px]"></i> Terbuka
+                            </span>
+                        </div>
+                        <h4 class="font-extrabold text-xs text-white leading-tight truncate">${badge.name}</h4>
+                        <p class="text-[9px] text-white/80 mt-0.5 truncate">Unit ${idx}</p>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div onclick="showBadgeDetail('${badge.id}')" class="bg-slate-100 text-slate-400 p-3 rounded-xl border border-slate-200 cursor-pointer hover:border-slate-300 transition-colors relative">
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center text-slate-400 text-sm">
+                                <i class="fa-solid ${badge.icon}"></i>
+                            </div>
+                            <span class="text-[9px] font-semibold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-lock text-[8px]"></i> Terkunci
+                            </span>
+                        </div>
+                        <h4 class="font-bold text-xs text-slate-600 leading-tight truncate">${badge.name}</h4>
+                        <p class="text-[9px] text-slate-400 mt-0.5 truncate">Selesaikan Unit ${idx}</p>
+                    </div>
+                `;
+            }
+        });
+
+        html += `
+                    </div>
+                </div>
+            </div>
+        `;
+        mainContent.innerHTML = html;
+        updateProgress();
+    }
+
+    // ==========================================
+    // 2. UNIT 0: MULAI DARI SINI (DIAGNOSTIK & TARGET SRL)
+    // ==========================================
+    function renderUnit0() {
+        updateHeader('Unit 0: Mulai dari Sini', 'Diagnostik & Target Belajar (SRL)');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-5">
+                <!-- Kartu SRL Orientasi -->
+                <div class="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm text-center">
+                    <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-2 text-2xl shadow-inner">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h2 class="font-bold text-sm text-slate-800">Kartu Penetapan Target Belajar</h2>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Sesuai teori <em>Self-Regulated Learning</em> (Zimmerman, 2002), mari tetapkan komitmen dan ukur pengetahuan awalmu sebelum mulai.
+                    </p>
+                </div>
+
+                <!-- Bagian 1: Kuis Diagnostik (5 Soal Sesuai Tugas 2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-question text-purple-500"></i>
+                        <span>1. Kuis Diagnostik Pengetahuan Awal (5 Soal)</span>
+                    </h3>
+                    <div id="diag-questions" class="space-y-4">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">1. Apa kegunaan utama fitur Mail Merge di Word?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq1" value="A" class="text-blue-600"> Membuat presentasi</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq1" value="B" class="text-blue-600"> Membuat surat massal otomatis</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">2. Aplikasi manakah yang paling ideal dijadikan Sumber Data?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq2" value="A" class="text-blue-600"> Microsoft Excel</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq2" value="B" class="text-blue-600"> Microsoft PowerPoint</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">3. Tab menu apa yang digunakan untuk Mail Merge di Word?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq3" value="A" class="text-blue-600"> Tab Insert</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq3" value="B" class="text-blue-600"> Tab Mailings</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">4. Bagaimana bentuk penanda Merge Field di dokumen?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq4" value="A" class="text-blue-600"> «Nama_Siswa»</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq4" value="B" class="text-blue-600"> {Nama_Siswa}</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">5. Apa nama dokumen Word yang berisi naskah tetap?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq5" value="A" class="text-blue-600"> Data Source</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq5" value="B" class="text-blue-600"> Master Document</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian 2: Target SRL -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-flag text-purple-500"></i>
+                        <span>2. Pilih Target Utamamu Hari Ini:</span>
+                    </h3>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-start gap-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="radio" name="srl_target" value="Paham Konsep" class="mt-0.5 text-blue-600" checked>
+                            <div>
+                                <span class="font-bold text-slate-800 block">Memahami Konsep Dasar & 3 Komponen Mail Merge</span>
+                                <span class="text-[11px] text-slate-500">Target minimal untuk pemula.</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="radio" name="srl_target" value="Mampu Simulasi" class="mt-0.5 text-blue-600">
+                            <div>
+                                <span class="font-bold text-slate-800 block">Mampu Menghubungkan Data Excel & Word Tanpa Error</span>
+                                <span class="text-[11px] text-slate-500">Target tingkat lanjut siap praktikum lab.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Tingkat Keyakinan Diri:</label>
+                        <select id="srl_conf" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium">
+                            <option value="Sangat Yakin">Sangat Yakin Bisa Mencapai Target</option>
+                            <option value="Butuh Bantuan">Butuh Bantuan & Petunjuk Bertingkat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="saveUnit0()" class="w-full bg-brand-royal text-white font-bold py-3 rounded-2xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-xs">
+                    <span>Simpan Target & Selesaikan Unit 0</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    function saveUnit0() {
+        const target = document.querySelector('input[name="srl_target"]:checked')?.value || 'Paham Konsep';
+        const conf = document.getElementById('srl_conf').value;
+        state.unit0 = { target, confidence: conf, quizScore: 100 };
+        
+        unlockUnit('unit0');
+        showModal(
+            '<i class="fa-solid fa-circle-check text-purple-600"></i>',
+            'Target Ditetapkan!',
+            `Target kamu: "${target}" (${conf}). Pemetaan diagnostik selesai. Lencana Unit 0 telah terbuka!`,
+            () => navigate('home')
+        );
+    }
+
+    // ==========================================
+    // 3. UNIT 1: MENGENAL MAIL MERGE (KONSEP & 3 KOMPONEN)
+    // ==========================================
+    function renderUnit1() {
+        updateHeader('Unit 1: Mengenal Mail Merge', 'Konsep Dasar & 3 Komponen (10 min)');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Pemantik Visual V1 -->
+                <div class="bg-gradient-to-r from-indigo-900 to-brand-navy text-white p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/30 flex items-center justify-center text-amber-300">
+                            <i class="fa-solid fa-film"></i>
+                        </div>
+                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V1: Pemantik (65 Detik)</h3>
+                    </div>
+                    <p class="text-xs text-indigo-100 leading-relaxed mb-3">
+                        Bayangkan mengetik 30 Surat Undangan Rapat Wali Murid secara manual satu per satu vs Sekali Klik dengan Mail Merge!
+                    </p>
+                    <div class="bg-black/40 p-3 rounded-xl border border-indigo-400/30 text-center">
+                        <i class="fa-solid fa-circle-play text-4xl text-amber-400 cursor-pointer hover:scale-110 transition-transform" onclick="alert('Simulasi Video Animasi V1 diputar: Panitia menghemat waktu dari 2 jam menjadi 1 menit!')"></i>
+                    </div>
+                </div>
+
+                <!-- Interactive Match Exercise (A1) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-hand-pointer text-indigo-600"></i>
+                        <span>Aktivitas: Cocokkan 3 Komponen Mail Merge</span>
+                    </h3>
+                    
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-brand-navy block mb-1">1. Master Document (Dokumen Utama)</span>
+                            <select id="match-1" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                                <option value="">-- Pilih Definisi yang Tepat --</option>
+                                <option value="A">File berisi daftar nama & data penerima (Excel)</option>
+                                <option value="B">Naskah surat berisi isi pesan tetap yang sama untuk semua orang (Word)</option>
+                                <option value="C">Kode penanda tempat data dimasukkan (misal: «Nama»)</option>
+                            </select>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-brand-navy block mb-1">2. Data Source (Sumber Data)</span>
+                            <select id="match-2" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                                <option value="">-- Pilih Definisi yang Tepat --</option>
+                                <option value="A">File berisi daftar nama & data penerima (Excel)</option>
+                                <option value="B">Naskah surat berisi isi pesan tetap yang sama untuk semua orang (Word)</option>
+                                <option value="C">Kode penanda tempat data dimasukkan (misal: «Nama»)</option>
+                            </select>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-brand-navy block mb-1">3. Merge Field</span>
+                            <select id="match-3" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                                <option value="">-- Pilih Definisi yang Tepat --</option>
+                                <option value="A">File berisi daftar nama & data penerima (Excel)</option>
+                                <option value="B">Naskah surat berisi isi pesan tetap yang sama untuk semua orang (Word)</option>
+                                <option value="C">Kode penanda tempat data dimasukkan (misal: «Nama»)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kuis Formatif (Sesuai Indikator TP1: 5 Soal) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-600"></i>
+                        <span>Kuis Formatif Unit 1 (Syarat Lulus: 4/5)</span>
+                    </h3>
+                    <div class="space-y-4" id="quiz-unit1">
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">1. Dalam Mail Merge, fungsi sumber data adalah...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border"><input type="radio" name="u1q1" value="wrong"> Menentukan ukuran kertas</label>
+                            <label class="block p-2 bg-slate-50 rounded border"><input type="radio" name="u1q1" value="correct"> Menyimpan data penerima yang berbeda</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">2. Master Document pada Mail Merge dibuat menggunakan...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border"><input type="radio" name="u1q2" value="correct"> Microsoft Word</label>
+                            <label class="block p-2 bg-slate-50 rounded border"><input type="radio" name="u1q2" value="wrong"> Microsoft Excel</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">3. Manakah yang merupakan contoh penulisan Merge Field yang benar?</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border"><input type="radio" name="u1q3" value="wrong"> [Nama_Siswa]</label>
+                            <label class="block p-2 bg-slate-50 rounded border"><input type="radio" name="u1q3" value="correct"> «Nama_Siswa»</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">4. Jika panitia butuh mencetak 50 sertifikat, Mail Merge sangat berguna karena...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border"><input type="radio" name="u1q4" value="correct"> Hanya butuh 1 desain utama, data otomatis berganti</label>
+                            <label class="block p-2 bg-slate-50 rounded border"><input type="radio" name="u1q4" value="wrong"> Membuat desain sertifikat menjadi lebih bagus</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">5. Hasil akhir penggabungan Mail Merge akan menghasilkan...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border"><input type="radio" name="u1q5" value="wrong"> Sebuah file Excel baru</label>
+                            <label class="block p-2 bg-slate-50 rounded border"><input type="radio" name="u1q5" value="correct"> Beberapa halaman dokumen sesuai jumlah data</label>
+                        </div>
+                    </div>
+                    <button onclick="checkUnit1()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 rounded-xl text-xs hover:bg-indigo-700 shadow-md">
+                        Kirim Jawaban & Selesaikan Unit 1
+                    </button>
+                </div>
+
+                <!-- Flipped Classroom LMS Integration -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-google text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Ruang Diskusi (A6)</p>
+                            <p class="text-[10px] text-slate-600">Tanggapi pertanyaan pemantik guru di LMS.</p>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-700" onclick="alert('Membuka Google Classroom Kelas X-1...')">Buka LMS</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function checkUnit1() {
+        const m1 = document.getElementById('match-1').value;
+        const m2 = document.getElementById('match-2').value;
+        const m3 = document.getElementById('match-3').value;
+        
+        let quizScore = 0;
+        for(let i=1; i<=5; i++) {
+            const val = document.querySelector(`input[name="u1q${i}"]:checked`)?.value;
+            if(val === 'correct') quizScore++;
+        }
+
+        if (m1 === 'B' && m2 === 'A' && m3 === 'C' && quizScore >= 4) {
+            playSound('success');
+            unlockUnit('unit1');
+            showModal(
+                '<i class="fa-solid fa-circle-check text-indigo-600"></i>',
+                'Lulus TP1 Sempurna!',
+                `Kuis Formatif: ${quizScore}/5 benar. Pemahaman 3 Komponen tepat. Lencana Unit 1 terbuka!`,
+                () => navigate('home')
+            );
+        } else {
+            playSound('error');
+            alert(`Skor Kuis: ${quizScore}/5. Ingat syarat lulus minimal 4/5 dan pencocokan komponen harus tepat (Master=Word, Data=Excel, Field=Penanda « »). Silakan perbaiki jawabanmu.`);
+        }
+    }
+
+    // ==========================================
+    // 4. UNIT 2: DATA EXCEL (STRUKTUR TABEL & REPAIR TOOL)
+    // ==========================================
+    function renderUnit2() {
+        updateHeader('Unit 2: Data Excel', 'Struktur Tabel & Sumber Data (12 min)');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Video V2 Screencast Demonstrasi -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi menyusun tabel Excel yang benar tanpa merged cells')">
+                    <div class="w-12 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xl shrink-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Menyiapkan Tabel Excel</h4>
+                        <p class="text-[10px] text-slate-500">Durasi: 90 Detik • Kursor disorot visual</p>
+                    </div>
+                    <i class="fa-regular fa-circle-play text-emerald-500 text-2xl ml-auto"></i>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs text-emerald-900 leading-relaxed">
+                    <span class="font-bold block mb-1 text-emerald-950"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Syarat Mutlak Sumber Data Excel:</span>
+                    1. Baris 1 HARUS berisi nama Header Kolom (tanpa judul di atasnya).<br>
+                    2. TIDAK BOLEH ada Sel Gabungan (<em>Merged Cells</em>) atau Baris Kosong.<br>
+                    3. Format kolom angka penting (seperti NIS/WA) berformat <strong>Text</strong> agar '0' depan tidak hilang.
+                </div>
+
+                <!-- Interactive Spreadsheet Fixer (A2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span>Simulasi: Perbaiki Tabel Excel (TP2)</span>
+                        <span class="text-emerald-600 font-extrabold" id="fix-count">0/3 Perbaikan</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mb-3">Klik pada bagian sel bergaris merah berkedip untuk memperbaikinya!</p>
+
+                    <div class="overflow-x-auto border border-slate-300 rounded-xl bg-slate-100 p-1 text-[11px]">
+                        <table class="w-full bg-white border-collapse text-center">
+                            <thead>
+                                <tr id="excel-row-1" class="bg-amber-100 border-b border-amber-300 cursor-pointer hover:bg-amber-200 transition-colors" onclick="fixExcelError(1)">
+                                    <td colspan="4" class="p-2 font-bold text-amber-900 text-left">
+                                        <i class="fa-solid fa-circle-exclamation text-red-500 mr-1"></i> [Baris 1 Bad Title]: "DAFTAR PESERTA LOMBA HARI SANTRI 2026" (Klik Hapus!)
+                                    </td>
+                                </tr>
+                                <tr class="bg-slate-200 text-slate-700 font-bold border-b border-slate-300">
+                                    <td class="p-2 border">No</td>
+                                    <td class="p-2 border">NIS</td>
+                                    <td class="p-2 border">Nama_Siswa</td>
+                                    <td class="p-2 border">Kelas</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-2 border">1</td>
+                                    <td id="excel-nis" class="p-2 border bg-red-50 text-red-600 font-bold cursor-pointer hover:bg-red-100" onclick="fixExcelError(2)">
+                                        1234 <i class="fa-solid fa-wrench text-[9px]"></i>
+                                    </td>
+                                    <td class="p-2 border">Aisyah Putri</td>
+                                    <td class="p-2 border">X-1</td>
+                                </tr>
+                                <tr id="excel-blank-row" class="bg-red-100 border-b border-red-300 cursor-pointer hover:bg-red-200" onclick="fixExcelError(3)">
+                                    <td colspan="4" class="p-1.5 text-red-800 text-xs italic font-semibold">
+                                        [Baris Kosong Di Antara Data] (Klik Hapus!)
+                                    </td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-2 border">2</td>
+                                    <td class="p-2 border">01235</td>
+                                    <td class="p-2 border">Bagas Pratama</td>
+                                    <td class="p-2 border">X-2</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Live Checklist 5 Butir (Sesuai Indikator TP2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2">Daftar Periksa Mutu Data Excel:</h4>
+                    <div class="space-y-1.5 text-xs" id="checklist-box">
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-1"><i class="fa-regular fa-square"></i> Header di Baris 1 Utama</div>
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-2"><i class="fa-regular fa-square"></i> Format NIS Berjenis Text (Angka '0' Tidak Hilang)</div>
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-3"><i class="fa-regular fa-square"></i> Bebas Baris Kosong Di Tengah Data</div>
+                        <div class="flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-square-check"></i> Tidak ada sel gabungan (Merged Cells)</div>
+                        <div class="flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-square-check"></i> Satu Baris = Satu Record Data Siswa</div>
+                    </div>
+                </div>
+                
+                <!-- Flipped Classroom LMS Integration -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-google text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Ruang Diskusi (A6)</p>
+                            <p class="text-[10px] text-slate-600">Tanggapi pertanyaan tabel Excel di LMS.</p>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-700" onclick="alert('Membuka Google Classroom Kelas X-1...')">Buka LMS</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function checkMatchUnit1() {
+        const m1 = document.getElementById('match-1').value;
+        const m2 = document.getElementById('match-2').value;
+        const m3 = document.getElementById('match-3').value;
+
+        if (m1 === 'B' && m2 === 'A' && m3 === 'C') {
+            playSound('success');
+            unlockUnit('unit1');
+            showModal(
+                '<i class="fa-solid fa-circle-check text-indigo-600"></i>',
+                'Sempurna!',
+                'Kamu berhasil mengidentifikasi 3 Komponen Utama Mail Merge dengan benar. Lencana Unit 1 terbuka!',
+                () => navigate('home')
+            );
+        } else {
+            playSound('error');
+            alert('Masih ada penyesuaian yang belum tepat. Ingat: Master Document = Naskah Surat (Word), Data Source = Daftar Data (Excel), Merge Field = Penanda «Kode»');
+        }
+    }
+
+    // ==========================================
+    // 4. UNIT 2: DATA EXCEL (STRUKTUR TABEL & REPAIR TOOL)
+    // ==========================================
+    function renderUnit2() {
+        updateHeader('Unit 2: Data Excel', 'Struktur Tabel & Sumber Data (12 min)');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs text-emerald-900 leading-relaxed">
+                    <span class="font-bold block mb-1 text-emerald-950"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Syarat Mutlak Sumber Data Excel:</span>
+                    1. Baris 1 HARUS berisi nama Header Kolom (tanpa judul di atasnya).<br>
+                    2. TIDAK BOLEH ada Sel Gabungan (<em>Merged Cells</em>) atau Baris Kosong.<br>
+                    3. Format kolom angka penting (seperti NIS/WA) berformat <strong>Text</strong> agar '0' depan tidak hilang.
+                </div>
+
+                <!-- Interactive Spreadsheet Fixer (A2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span>Simulasi: Perbaiki Tabel Excel yang Rusak</span>
+                        <span class="text-emerald-600 font-extrabold" id="fix-count">0/3 Perbaikan</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mb-3">Klik pada bagian sel bergaris merah berkedip untuk memperbaikinya!</p>
+
+                    <div class="overflow-x-auto border border-slate-300 rounded-xl bg-slate-100 p-1 text-[11px]">
+                        <table class="w-full bg-white border-collapse text-center">
+                            <thead>
+                                <tr id="excel-row-1" class="bg-amber-100 border-b border-amber-300 cursor-pointer hover:bg-amber-200 transition-colors" onclick="fixExcelError(1)">
+                                    <td colspan="4" class="p-2 font-bold text-amber-900 text-left">
+                                        <i class="fa-solid fa-circle-exclamation text-red-500 mr-1"></i> [Baris 1 Bad Title]: "DAFTAR PESERTA LOMBA HARI SANTRI 2026" (Klik Hapus!)
+                                    </td>
+                                </tr>
+                                <tr class="bg-slate-200 text-slate-700 font-bold border-b border-slate-300">
+                                    <td class="p-2 border">No</td>
+                                    <td class="p-2 border">NIS</td>
+                                    <td class="p-2 border">Nama_Siswa</td>
+                                    <td class="p-2 border">Kelas</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-2 border">1</td>
+                                    <td id="excel-nis" class="p-2 border bg-red-50 text-red-600 font-bold cursor-pointer hover:bg-red-100" onclick="fixExcelError(2)">
+                                        1234 <i class="fa-solid fa-wrench text-[9px]"></i>
+                                    </td>
+                                    <td class="p-2 border">Aisyah Putri</td>
+                                    <td class="p-2 border">X-1</td>
+                                </tr>
+                                <tr id="excel-blank-row" class="bg-red-100 border-b border-red-300 cursor-pointer hover:bg-red-200" onclick="fixExcelError(3)">
+                                    <td colspan="4" class="p-1.5 text-red-800 text-xs italic font-semibold">
+                                        [Baris 3 Kosong Di Antara Data] (Klik Hapus Baris Kosong!)
+                                    </td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-2 border">2</td>
+                                    <td class="p-2 border">01235</td>
+                                    <td class="p-2 border">Bagas Pratama</td>
+                                    <td class="p-2 border">X-2</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Live Checklist 5 Butir -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2">Daftar Periksa Mutu Data Excel:</h4>
+                    <div class="space-y-1.5 text-xs" id="checklist-box">
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-1"><i class="fa-regular fa-square"></i> Header di Baris 1 Utama</div>
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-2"><i class="fa-regular fa-square"></i> Format NIS Berjenis Text (Angka '0' Tidak Hilang)</div>
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-3"><i class="fa-regular fa-square"></i> Bebas Baris Kosong Di Tengah Data</div>
+                        <div class="flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-square-check"></i> Tidak ada sel gabungan (Merged Cells)</div>
+                        <div class="flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-square-check"></i> Satu Baris = Satu Record Data Siswa</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function fixExcelError(errorId) {
+        playSound('click');
+        if (!state.unit2.errorsFixed.includes(errorId)) {
+            state.unit2.errorsFixed.push(errorId);
+        }
+
+        if (errorId === 1) {
+            const r1 = document.getElementById('excel-row-1');
+            r1.style.display = 'none';
+            document.getElementById('chk-1').className = 'flex items-center gap-2 text-emerald-600 font-semibold';
+            document.getElementById('chk-1').innerHTML = '<i class="fa-solid fa-square-check"></i> Header di Baris 1 Utama';
+        } else if (errorId === 2) {
+            const nis = document.getElementById('excel-nis');
+            nis.className = 'p-2 border bg-emerald-100 text-emerald-800 font-bold';
+            nis.innerHTML = '01234 ✓';
+            document.getElementById('chk-2').className = 'flex items-center gap-2 text-emerald-600 font-semibold';
+            document.getElementById('chk-2').innerHTML = '<i class="fa-solid fa-square-check"></i> Format NIS Berjenis Text (0 Ditampilkan)';
+        } else if (errorId === 3) {
+            const blank = document.getElementById('excel-blank-row');
+            blank.style.display = 'none';
+            document.getElementById('chk-3').className = 'flex items-center gap-2 text-emerald-600 font-semibold';
+            document.getElementById('chk-3').innerHTML = '<i class="fa-solid fa-square-check"></i> Bebas Baris Kosong Di Tengah Data';
+        }
+
+        document.getElementById('fix-count').textContent = `${state.unit2.errorsFixed.length}/3 Perbaikan`;
+
+        if (state.unit2.errorsFixed.length === 3) {
+            playSound('success');
+            unlockUnit('unit2');
+            setTimeout(() => {
+                showModal(
+                    '<i class="fa-solid fa-file-excel text-emerald-600"></i>',
+                    'Tabel Excel Sempurna!',
+                    'Semua kesalahan struktur tabel telah berhasil diperbaiki. Data siap digunakan dalam Mail Merge. Lencana Unit 2 terbuka!',
+                    () => navigate('home')
+                );
+            }, 300);
+        }
+    }
+
+    // ==========================================
+    // 5. UNIT 3: DOKUMEN & MERGE FIELD (SIMULASI WORD 7 LANGKAH)
+    // ==========================================
+    function renderUnit3() {
+        updateHeader('Unit 3: Dokumen & Field', 'Simulasi Word 7 Langkah (15 min)');
+        state.unit3.step = 0;
+        state.unit3.mistakes = 0;
+
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-3 flex flex-col h-full">
+                <!-- Video V2 Screencast Demonstrasi 7 Langkah -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi 7 Langkah Mail Merge di Tab Mailings')">
+                    <div class="w-12 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xl shrink-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Demonstrasi 7 Langkah</h4>
+                        <p class="text-[10px] text-slate-500">Tonton sebelum mencoba simulasi di bawah.</p>
+                    </div>
+                    <i class="fa-regular fa-circle-play text-blue-500 text-2xl ml-auto"></i>
+                </div>
+
+                <!-- Panel Instruksi & Scaffolding Dynamic (Vygotsky ZPD) -->
+                <div id="scaffold-box" class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all">
+                    <i id="scaffold-icon" class="fa-solid fa-circle-info text-blue-600 text-base mt-0.5"></i>
+                    <div>
+                        <span id="scaffold-title" class="font-bold block text-blue-950 mb-0.5">Misi Simulasi (Langkah 1/7):</span>
+                        <span id="scaffold-text">Klik tab <strong>"Mailings"</strong> di pita menu Microsoft Word tiruan di bawah ini untuk memulai!</span>
+                    </div>
+                </div>
+
+                <!-- Word Desktop Ribbon Simulation Container -->
+                <div class="border border-slate-300 rounded-2xl bg-slate-200 overflow-hidden shadow-sm flex-1 flex flex-col" onclick="handleWrongStep(event)">
+                    
+                    <!-- Ribbon Toolbar -->
+                    <div class="bg-white border-b border-slate-300" onclick="event.stopPropagation()">
+                        <div class="flex px-1 pt-1 bg-slate-100 border-b border-slate-300 text-slate-600">
+                            <div class="ribbon-tab" onclick="handleWrongStep(event)">File</div>
+                            <div class="ribbon-tab active" id="tab-home">Home</div>
+                            <div class="ribbon-tab" onclick="handleWrongStep(event)">Insert</div>
+                            <div id="tab-mailings" class="ribbon-tab pulse-btn bg-blue-100 font-bold" onclick="simStep(1, event)">Mailings</div>
+                            <div class="ribbon-tab" onclick="handleWrongStep(event)">View</div>
+                        </div>
+
+                        <!-- Mailings Action Tools -->
+                        <div id="toolbar-mailings" class="flex gap-1 p-2 bg-slate-50 overflow-x-auto opacity-40 pointer-events-none transition-opacity">
+                            <div id="btn-start-merge" class="ribbon-btn w-16" onclick="simStep(2, event)">
+                                <i class="fa-regular fa-envelope text-slate-700 text-sm mb-1"></i>
+                                <span>Start Merge</span>
+                            </div>
+                            <div id="btn-select-recip" class="ribbon-btn w-16" onclick="simStep(3, event)">
+                                <i class="fa-solid fa-users text-slate-700 text-sm mb-1"></i>
+                                <span>Select Recip.</span>
+                            </div>
+                            <div class="w-px bg-slate-300 mx-1"></div>
+                            <div id="btn-insert-field" class="ribbon-btn w-16 disabled" onclick="simStep(4, event)">
+                                <i class="fa-regular fa-square-plus text-slate-700 text-sm mb-1"></i>
+                                <span>Insert Field</span>
+                            </div>
+                            <div class="w-px bg-slate-300 mx-1"></div>
+                            <div id="btn-preview" class="ribbon-btn w-16 disabled" onclick="simStep(5, event)">
+                                <i class="fa-solid fa-magnifying-glass text-slate-700 text-sm mb-1"></i>
+                                <span>Preview</span>
+                            </div>
+                            <div id="btn-finish" class="ribbon-btn w-16 disabled" onclick="simStep(6, event)">
+                                <i class="fa-solid fa-flag-checkered text-slate-700 text-sm mb-1"></i>
+                                <span>Finish</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Document View -->
+                    <div class="p-4 flex-1 flex justify-center bg-slate-300 overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="bg-white w-full max-w-[320px] min-h-[300px] shadow-md p-5 text-[11px] text-slate-800 leading-relaxed font-serif rounded-sm border border-slate-200">
+                            <p class="text-right mb-3 text-slate-500">Temanggung, 22 Oktober 2026</p>
+                            <p class="mb-2">Kepada Yth.<br>
+                               <span id="doc-nama" class="inline-block bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200 min-w-[110px] min-h-[20px] font-sans font-semibold"></span><br>
+                               Di Tempat
+                            </p>
+                            <p class="mt-3 text-justify text-slate-700 indent-4">
+                                Mengharap kehadiran Bapak/Ibu Wali Murid dari <span id="doc-siswa" class="bg-blue-50 px-1 font-sans text-blue-700 border border-blue-200 rounded">...</span> kelas <span id="doc-kelas" class="bg-blue-50 px-1 font-sans text-blue-700 border border-blue-200 rounded">...</span> pada acara Rapat Evaluasi Pembelajaran.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aktivitas Tambahan (Kuis TP3) -->
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+                    <button onclick="checkOrderQuiz()" class="w-full bg-slate-800 text-white font-bold py-2 rounded-xl text-xs hover:bg-slate-900">
+                        <i class="fa-solid fa-list-ol mr-1"></i> Kuis TP3: Urutkan 7 Langkah Mail Merge
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function handleWrongStep(e) {
+        if(e) e.stopPropagation();
+        playSound('error');
+        state.unit3.mistakes++;
+        updateScaffoldingUI(false);
+    }
+
+    function simStep(stepNum, e) {
+        if(e) e.stopPropagation();
+        playSound('click');
+
+        if (stepNum !== state.unit3.step + 1) {
+            handleWrongStep();
+            return;
+        }
+
+        state.unit3.step = stepNum;
+        state.unit3.mistakes = 0; // Reset error counter on correct step
+
+        const scaffoldBox = document.getElementById('scaffold-box');
+        const scaffoldTitle = document.getElementById('scaffold-title');
+        const scaffoldText = document.getElementById('scaffold-text');
+        
+        if (stepNum === 1) {
+            document.getElementById('tab-mailings').classList.remove('pulse-btn');
+            document.getElementById('toolbar-mailings').classList.remove('opacity-40', 'pointer-events-none');
+            document.getElementById('btn-start-merge').classList.add('pulse-btn', 'bg-blue-100');
+            
+            scaffoldTitle.textContent = "Langkah 2/7 Selesai!";
+            scaffoldText.textContent = "Bagus! Sekarang klik tombol 'Start Merge' (pilih Letters) untuk memulai format surat.";
+        }
+        else if (stepNum === 2) {
+            document.getElementById('btn-start-merge').classList.remove('pulse-btn', 'bg-blue-100');
+            document.getElementById('btn-select-recip').classList.add('pulse-btn', 'bg-blue-100');
+            
+            scaffoldTitle.textContent = "Langkah 3/7 Selesai!";
+            scaffoldText.textContent = "Sip! Sekarang hubungkan data Excel. Klik tombol 'Select Recip.' (Select Recipients).";
+        }
+        else if (stepNum === 3) {
+            document.getElementById('btn-select-recip').classList.remove('pulse-btn', 'bg-blue-100');
+            
+            showModal(
+                '<i class="fa-solid fa-file-excel text-green-600"></i>',
+                'Data Excel Terhubung!',
+                'Berkas "data_siswa_x1.xlsx" terhubung! Baris 1 otomatis dikenali sebagai Header.',
+                () => {
+                    document.getElementById('btn-insert-field').classList.remove('disabled');
+                    document.getElementById('btn-insert-field').classList.add('pulse-btn', 'bg-blue-100');
+                    scaffoldTitle.textContent = "Langkah 4/7 Selesai!";
+                    scaffoldText.textContent = "Data terhubung! Sekarang klik 'Insert Field' untuk memasukkan penanda «Nama_Wali».";
+                }
+            );
+        }
+        else if (stepNum === 4) {
+            document.getElementById('btn-insert-field').classList.remove('pulse-btn', 'bg-blue-100');
+            document.getElementById('doc-nama').textContent = '«Nama_Wali»';
+            document.getElementById('doc-siswa').textContent = '«Nama_Siswa»';
+            document.getElementById('doc-kelas').textContent = '«Kelas»';
+            
+            document.getElementById('btn-preview').classList.remove('disabled');
+            document.getElementById('btn-preview').classList.add('pulse-btn', 'bg-blue-100');
+            scaffoldTitle.textContent = "Langkah 5/7 Selesai!";
+            scaffoldText.textContent = "Merge Fields disisipkan! Klik 'Preview' (Kaca Pembesar) untuk melihat hasilnya.";
+        }
+        else if (stepNum === 5) {
+            document.getElementById('btn-preview').classList.remove('pulse-btn', 'bg-blue-100');
+            document.getElementById('doc-nama').textContent = 'Bpk. Ronggowisnu G.';
+            document.getElementById('doc-siswa').textContent = 'Aisyah Putri';
+            document.getElementById('doc-kelas').textContent = 'X-1';
+            
+            document.getElementById('doc-nama').className = 'inline-block bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-300 font-sans font-bold';
+            
+            document.getElementById('btn-finish').classList.remove('disabled');
+            document.getElementById('btn-finish').classList.add('pulse-btn', 'bg-blue-100');
+            scaffoldTitle.textContent = "Langkah 6/7 Selesai!";
+            scaffoldText.textContent = "Pratinjau tampil sempurna! Terakhir, klik 'Finish' (Finish & Merge) untuk mencetak dokumen.";
+        }
+        else if (stepNum === 6) {
+            document.getElementById('btn-finish').classList.remove('pulse-btn', 'bg-blue-100');
+            playSound('success');
+            unlockUnit('unit3');
+            showModal(
+                '<i class="fa-solid fa-award text-amber-500"></i>',
+                'Simulasi Mail Merge Tuntas!',
+                'Selamat! Kamu telah menguasai 7 langkah utama Mail Merge. Lencana Unit 3 terbuka!',
+                () => navigate('home')
+            );
+        }
+    }
+
+    // Scaffolding 3 Level Logic (ADDIE Design Rule)
+    function updateScaffoldingUI(isSuccess) {
+        const box = document.getElementById('scaffold-box');
+        const icon = document.getElementById('scaffold-icon');
+        const title = document.getElementById('scaffold-title');
+        const text = document.getElementById('scaffold-text');
+
+        if (!isSuccess) {
+            if (state.unit3.mistakes === 1) {
+                // Hint Level 1: Visual Direction
+                box.className = "bg-amber-50 border border-amber-300 text-amber-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all";
+                icon.className = "fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5";
+                title.textContent = "Petunjuk Level 1 (Arah Visual):";
+                text.textContent = "Perhatikan posisi tombol yang berkedip biru atau disorot pada menu atas.";
+            } else if (state.unit3.mistakes >= 2) {
+                // Hint Level 2: Detailed Step & Solution Key
+                box.className = "bg-rose-50 border border-rose-300 text-rose-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all";
+                icon.className = "fa-solid fa-circle-xmark text-rose-600 text-base mt-0.5";
+                title.textContent = "Petunjuk Level 2 (Kunci Solusi):";
+                if (state.unit3.step === 0) text.textContent = "Klik tab 'Mailings' di atas ribbon.";
+                else if (state.unit3.step === 1) text.textContent = "Klik tombol 'Start Merge'.";
+                else if (state.unit3.step === 2) text.textContent = "Klik tombol 'Select Recip.'.";
+                else if (state.unit3.step === 3) text.textContent = "Klik tombol 'Insert Field'.";
+                else if (state.unit3.step === 4) text.textContent = "Klik tombol 'Preview'.";
+                else if (state.unit3.step === 5) text.textContent = "Klik tombol 'Finish'.";
+            }
+        }
+    }
+
+    function checkOrderQuiz() {
+        showModal(
+            '<i class="fa-solid fa-list-check text-blue-600"></i>',
+            'Urutan 7 Langkah Mail Merge',
+            '1. Buat Dokumen Master (Word)\n2. Buka Tab Mailings -> Start Merge\n3. Select Recipients (Pilih Excel)\n4. Insert Merge Field di Posisi Tepat\n5. Preview Results\n6. Finish & Merge',
+            null
+        );
+    }
+
+    // ==========================================
+    // 6. UNIT 4: PRATINJAU & PERBAIKAN (KLINIK KESALAHAN)
+    // ==========================================
+    function renderUnit4() {
+        updateHeader('Unit 4: Klinik Kesalahan', 'Diagnosis & Troubleshoot (15 min)');
+
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Video V2 Screencast Demonstrasi -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi memperbaiki Format Tanggal dan Angka dari Excel ke Word')">
+                    <div class="w-12 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 text-xl shrink-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Troubleshoot Error</h4>
+                        <p class="text-[10px] text-slate-500">Pelajari solusi format tanggal/angka.</p>
+                    </div>
+                    <i class="fa-regular fa-circle-play text-amber-500 text-2xl ml-auto"></i>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl text-xs text-amber-900 leading-relaxed">
+                    <span class="font-bold block text-amber-950 mb-0.5"><i class="fa-solid fa-stethoscope text-amber-600 mr-1"></i> Klinik Diagnosis Kesalahan (HOTS Level C4):</span>
+                    Sesuai indikator TP4, analisislah 3 kasus gagal gabung (Mail Merge) berikut dan temukan solusinya secara tepat!
+                </div>
+
+                <!-- Case 1: Field Kosong -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-brand-navy">Kasus 1: Merge Field Kosong / Undefined</span>
+                        <span id="case-badge-0" class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Belum Selesai</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 rounded-xl text-xs font-mono text-slate-700">
+                        Hasil Gabungan: "Kepada Yth. «Nama_Wali_Siswa»" (Teks nama tidak muncul!)
+                    </div>
+                    <div class="text-xs space-y-1.5">
+                        <label class="block font-semibold text-slate-700">Penyebab Utama & Solusi:</label>
+                        <select id="case-sol-0" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                            <option value="">-- Pilih Diagnosis --</option>
+                            <option value="wrong">Printer tidak terhubung ke komputer</option>
+                            <option value="correct">Nama kolom header Excel tidak cocok dengan nama Merge Field -> Hapus & Sisipkan Ulang Field yang Sesuai</option>
+                        </select>
+                    </div>
+                    <button onclick="solveCase(0)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 1</button>
+                </div>
+
+                <!-- Case 2: NIS Hilang Angka 0 -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-brand-navy">Kasus 2: NIS "0123" Berubah Jadi "123"</span>
+                        <span id="case-badge-1" class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Belum Selesai</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 rounded-xl text-xs font-mono text-slate-700">
+                        Hasil Gabungan: NIS: 123 (Angka '0' di depan terhapus otomatis)
+                    </div>
+                    <div class="text-xs space-y-1.5">
+                        <label class="block font-semibold text-slate-700">Penyebab Utama & Solusi:</label>
+                        <select id="case-sol-1" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                            <option value="">-- Pilih Diagnosis --</option>
+                            <option value="correct">Excel membaca NIS sebagai Number -> Ubah Format Kolom NIS di Excel menjadi Text</option>
+                            <option value="wrong">File Word terlampau besar</option>
+                        </select>
+                    </div>
+                    <button onclick="solveCase(1)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 2</button>
+                </div>
+
+                <!-- Case 3: Format Tanggal Berubah -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-brand-navy">Kasus 3: Tanggal "22/10/2026" Jadi "10/22/2026"</span>
+                        <span id="case-badge-2" class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Belum Selesai</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 rounded-xl text-xs font-mono text-slate-700">
+                        Hasil Gabungan: Temanggung, 10/22/2026 (Format tanggal US default)
+                    </div>
+                    <div class="text-xs space-y-1.5">
+                        <label class="block font-semibold text-slate-700">Penyebab Utama & Solusi:</label>
+                        <select id="case-sol-2" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                            <option value="">-- Pilih Diagnosis --</option>
+                            <option value="correct">Pengaturan bahasa bawaan sistem -> Tambahkan Switch Format Tanggal \\@ "dd MMMM yyyy" di Word</option>
+                            <option value="wrong">Ketik tanggal manual satu-satu</option>
+                        </select>
+                    </div>
+                    <button onclick="solveCase(2)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 3</button>
+                </div>
+                
+                <!-- Flipped Classroom LMS Integration -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-google text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Ruang Diskusi (A6)</p>
+                            <p class="text-[10px] text-slate-600">Bagikan error log kelompokmu di LMS.</p>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-700" onclick="alert('Membuka Google Classroom Kelas X-1...')">Buka LMS</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function solveCase(caseIdx) {
+        const sol = document.getElementById(`case-sol-${caseIdx}`).value;
+        if (sol === 'correct') {
+            playSound('success');
+            state.unit4.solvedCases[caseIdx] = true;
+            document.getElementById(`case-badge-${caseIdx}`).className = 'text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full';
+            document.getElementById(`case-badge-${caseIdx}`).textContent = 'Teratasi ✓';
+
+            const allSolved = state.unit4.solvedCases.every(Boolean);
+            if (allSolved) {
+                unlockUnit('unit4');
+                showModal(
+                    '<i class="fa-solid fa-stethoscope text-amber-600"></i>',
+                    'Dokter Mail Merge!',
+                    'Kamu berhasil menganalisis dan memperbaiki 3 kasus gagal gabung secara tepat. Lencana Unit 4 terbuka!',
+                    () => navigate('home')
+                );
+            } else {
+                alert('Diagnosis tepat! Lanjutkan memecahkan kasus berikutnya.');
+            }
+        } else {
+            playSound('error');
+            alert('Diagnosis kurang tepat. Periksa kembali teori penyebab eror pada modul.');
+        }
+    }
+
+    // ==========================================
+    // 7. UNIT 5: PROYEK & REFLEKSI AKHIR (SRL & RUBRIK)
+    // ==========================================
+    // 2. UNIT 0: MULAI DARI SINI (DIAGNOSTIK & TARGET SRL)
+    // ==========================================
+    function renderUnit0() {
+        updateHeader('Unit 0: Mulai dari Sini', 'Diagnostik & Target Belajar (SRL)', true, 'unit0');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-5">
+                <!-- Kartu SRL Orientasi -->
+                <div class="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm text-center">
+                    <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-2 text-2xl shadow-inner">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h2 class="font-bold text-sm text-slate-800">Kartu Penetapan Target Belajar</h2>
+                    <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Sesuai teori <em>Self-Regulated Learning</em> (Zimmerman, 2002), mari tetapkan komitmen dan ukur pengetahuan awalmu sebelum mulai.
+                    </p>
+                </div>
+
+                <!-- Bagian 1: Kuis Diagnostik (5 Soal Sesuai Tugas 2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-question text-purple-500"></i>
+                        <span>1. Kuis Diagnostik Pengetahuan Awal (5 Soal)</span>
+                    </h3>
+                    <div id="diag-questions" class="space-y-4">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">1. Apa kegunaan utama fitur Mail Merge di Word?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq1" value="A" class="text-blue-600"> Membuat presentasi</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq1" value="B" class="text-blue-600"> Membuat surat massal otomatis</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">2. Aplikasi manakah yang paling ideal dijadikan Sumber Data?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq2" value="A" class="text-blue-600"> Microsoft Excel</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq2" value="B" class="text-blue-600"> Microsoft PowerPoint</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">3. Tab menu apa yang digunakan untuk Mail Merge di Word?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq3" value="A" class="text-blue-600"> Tab Insert</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq3" value="B" class="text-blue-600"> Tab Mailings</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">4. Bagaimana bentuk penanda Merge Field di dokumen?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq4" value="A" class="text-blue-600"> «Nama_Siswa»</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq4" value="B" class="text-blue-600"> {Nama_Siswa}</label>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <p class="text-xs font-semibold text-slate-700 mb-2">5. Apa nama dokumen Word yang berisi naskah tetap?</p>
+                            <div class="space-y-1.5 text-xs">
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq5" value="A" class="text-blue-600"> Data Source</label>
+                                <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer"><input type="radio" name="dq5" value="B" class="text-blue-600"> Master Document</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian 2: Target SRL -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-flag text-purple-500"></i>
+                        <span>2. Pilih Target Utamamu Hari Ini:</span>
+                    </h3>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-start gap-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="radio" name="srl_target" value="Paham Konsep" class="mt-0.5 text-blue-600" checked>
+                            <div>
+                                <span class="font-bold text-slate-800 block">Memahami Konsep Dasar & 3 Komponen Mail Merge</span>
+                                <span class="text-[11px] text-slate-500">Target minimal untuk pemula.</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 border rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="radio" name="srl_target" value="Mampu Simulasi" class="mt-0.5 text-blue-600">
+                            <div>
+                                <span class="font-bold text-slate-800 block">Mampu Menghubungkan Data Excel & Word Tanpa Error</span>
+                                <span class="text-[11px] text-slate-500">Target tingkat lanjut siap praktikum lab.</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <label class="block text-xs font-semibold text-slate-700 mb-2">Tingkat Keyakinan Diri:</label>
+                        <select id="srl_conf" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium">
+                            <option value="Sangat Yakin">Sangat Yakin Bisa Mencapai Target</option>
+                            <option value="Butuh Bantuan">Butuh Bantuan & Petunjuk Bertingkat</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="saveUnit0()" class="w-full bg-brand-royal text-white font-bold py-3 rounded-2xl shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 text-xs">
+                    <span>Simpan Target & Dapatkan Lencana "Pelopor SRL"</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        `;
+    }
+
+    function saveUnit0() {
+        const target = document.querySelector('input[name="srl_target"]:checked')?.value || 'Paham Konsep';
+        const conf = document.getElementById('srl_conf').value;
+        state.unit0 = { target, confidence: conf, quizScore: 100 };
+        
+        unlockUnit('unit0');
+        showModal(
+            '<i class="fa-solid fa-award text-purple-600 text-6xl"></i>',
+            'Lencana "Pelopor SRL" Terbuka!',
+            `Target kamu: "${target}" (${conf}). Pemetaan diagnostik selesai. Lencana Unit 0 berhasil didapatkan!`,
+            () => navigate('home')
+        );
+    }
+
+    // ==========================================
+    // 3. UNIT 1: MENGENAL MAIL MERGE (KONSEP & 3 KOMPONEN)
+    // ==========================================
+    function renderUnit1() {
+        updateHeader('Unit 1: Mengenal Mail Merge', 'Konsep Dasar & 3 Komponen (10 min)', true, 'unit1');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Pemantik Visual V1 -->
+                <div class="bg-gradient-to-r from-indigo-900 to-brand-navy text-white p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/30 flex items-center justify-center text-amber-300">
+                            <i class="fa-solid fa-film"></i>
+                        </div>
+                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V1: Pemantik (65 Detik)</h3>
+                    </div>
+                    <p class="text-xs text-indigo-100 leading-relaxed mb-3">
+                        Bayangkan mengetik 30 Surat Undangan Rapat Wali Murid secara manual satu per satu vs Sekali Klik dengan Mail Merge!
+                    </p>
+                    <div class="bg-black/40 p-3 rounded-xl border border-indigo-400/30 text-center">
+                        <i class="fa-solid fa-circle-play text-4xl text-amber-400 cursor-pointer hover:scale-110 transition-transform" onclick="alert('Simulasi Video Animasi V1 diputar: Panitia menghemat waktu dari 2 jam menjadi 1 menit!')"></i>
+                    </div>
+                </div>
+
+                <!-- Interactive Match Exercise (A1) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-hand-pointer text-indigo-600"></i>
+                        <span>Aktivitas: Cocokkan 3 Komponen Mail Merge</span>
+                    </h3>
+                    
+                    <div class="space-y-3 text-xs">
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-brand-navy block mb-1">1. Master Document (Dokumen Utama)</span>
+                            <select id="match-1" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                                <option value="">-- Pilih Definisi yang Tepat --</option>
+                                <option value="A">File berisi daftar nama & data penerima (Excel)</option>
+                                <option value="B">Naskah surat berisi isi pesan tetap yang sama untuk semua orang (Word)</option>
+                                <option value="C">Kode penanda tempat data dimasukkan (misal: «Nama»)</option>
+                            </select>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-brand-navy block mb-1">2. Data Source (Sumber Data)</span>
+                            <select id="match-2" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                                <option value="">-- Pilih Definisi yang Tepat --</option>
+                                <option value="A">File berisi daftar nama & data penerima (Excel)</option>
+                                <option value="B">Naskah surat berisi isi pesan tetap yang sama untuk semua orang (Word)</option>
+                                <option value="C">Kode penanda tempat data dimasukkan (misal: «Nama»)</option>
+                            </select>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <span class="font-bold text-brand-navy block mb-1">3. Merge Field</span>
+                            <select id="match-3" class="w-full p-2 bg-white border border-slate-300 rounded-lg">
+                                <option value="">-- Pilih Definisi yang Tepat --</option>
+                                <option value="A">File berisi daftar nama & data penerima (Excel)</option>
+                                <option value="B">Naskah surat berisi isi pesan tetap yang sama untuk semua orang (Word)</option>
+                                <option value="C">Kode penanda tempat data dimasukkan (misal: «Nama»)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kuis Formatif (Sesuai Indikator TP1: 5 Soal) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-600"></i>
+                        <span>Kuis Formatif Unit 1 (Syarat Lulus: 4/5)</span>
+                    </h3>
+                    <div class="space-y-4" id="quiz-unit1">
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">1. Dalam Mail Merge, fungsi sumber data adalah...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q1" value="wrong"> Menentukan ukuran kertas</label>
+                            <label class="block p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q1" value="correct"> Menyimpan data penerima yang berbeda</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">2. Master Document pada Mail Merge dibuat menggunakan...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q2" value="correct"> Microsoft Word</label>
+                            <label class="block p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q2" value="wrong"> Microsoft Excel</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">3. Manakah yang merupakan contoh penulisan Merge Field yang benar?</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q3" value="wrong"> [Nama_Siswa]</label>
+                            <label class="block p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q3" value="correct"> «Nama_Siswa»</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">4. Jika panitia butuh mencetak 50 sertifikat, Mail Merge sangat berguna karena...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q4" value="correct"> Hanya butuh 1 desain utama, data otomatis berganti</label>
+                            <label class="block p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q4" value="wrong"> Membuat desain sertifikat menjadi lebih bagus</label>
+                        </div>
+                        <div class="text-xs">
+                            <p class="font-semibold text-slate-700 mb-1.5">5. Hasil akhir penggabungan Mail Merge akan menghasilkan...</p>
+                            <label class="block mb-1 p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q5" value="wrong"> Sebuah file Excel baru</label>
+                            <label class="block p-2 bg-slate-50 rounded border cursor-pointer"><input type="radio" name="u1q5" value="correct"> Beberapa halaman dokumen sesuai jumlah data</label>
+                        </div>
+                    </div>
+                    <button onclick="checkUnit1()" class="w-full mt-4 bg-indigo-600 text-white font-bold py-3 rounded-xl text-xs hover:bg-indigo-700 shadow-md">
+                        Kirim Jawaban & Dapatkan Lencana "Paham 3 Komponen"
+                    </button>
+                </div>
+
+                <!-- Flipped Classroom LMS Integration -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-google text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Ruang Diskusi LMS (A6)</p>
+                            <p class="text-[10px] text-slate-600">Tanggapi pertanyaan pemantik guru di LMS.</p>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-700" onclick="alert('Membuka Google Classroom Kelas X-1...')">Buka LMS</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function checkUnit1() {
+        const m1 = document.getElementById('match-1').value;
+        const m2 = document.getElementById('match-2').value;
+        const m3 = document.getElementById('match-3').value;
+        
+        let quizScore = 0;
+        for(let i=1; i<=5; i++) {
+            const val = document.querySelector(`input[name="u1q${i}"]:checked`)?.value;
+            if(val === 'correct') quizScore++;
+        }
+
+        if (m1 === 'B' && m2 === 'A' && m3 === 'C' && quizScore >= 4) {
+            playSound('success');
+            unlockUnit('unit1');
+            showModal(
+                '<i class="fa-solid fa-award text-indigo-600 text-6xl"></i>',
+                'Lencana "Paham 3 Komponen" Terbuka!',
+                `Kuis Formatif: ${quizScore}/5 benar. Pemahaman 3 Komponen tepat. Lencana Unit 1 terbuka!`,
+                () => navigate('home')
+            );
+        } else {
+            playSound('error');
+            alert(`Skor Kuis: ${quizScore}/5. Ingat syarat lulus minimal 4/5 dan pencocokan komponen harus tepat (Master=Word, Data=Excel, Field=Penanda « »). Silakan perbaiki jawabanmu.`);
+        }
+    }
+
+    // ==========================================
+    // 4. UNIT 2: DATA EXCEL (STRUKTUR TABEL & REPAIR TOOL)
+    // ==========================================
+    function renderUnit2() {
+        updateHeader('Unit 2: Data Excel', 'Struktur Tabel & Sumber Data (12 min)', true, 'unit2');
+        
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Video V2 Screencast Demonstrasi -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi menyusun tabel Excel yang benar tanpa merged cells')">
+                    <div class="w-12 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xl shrink-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Menyiapkan Tabel Excel</h4>
+                        <p class="text-[10px] text-slate-500">Durasi: 90 Detik • Kursor disorot visual</p>
+                    </div>
+                    <i class="fa-regular fa-circle-play text-emerald-500 text-2xl ml-auto"></i>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs text-emerald-900 leading-relaxed">
+                    <span class="font-bold block mb-1 text-emerald-950"><i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i> Syarat Mutlak Sumber Data Excel:</span>
+                    1. Baris 1 HARUS berisi nama Header Kolom (tanpa judul di atasnya).<br>
+                    2. TIDAK BOLEH ada Sel Gabungan (<em>Merged Cells</em>) atau Baris Kosong.<br>
+                    3. Format kolom angka penting (seperti NIS/WA) berformat <strong>Text</strong> agar '0' depan tidak hilang.
+                </div>
+
+                <!-- Interactive Spreadsheet Fixer (A2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span>Simulasi: Perbaiki Tabel Excel (TP2)</span>
+                        <span class="text-emerald-600 font-extrabold" id="fix-count">0/3 Perbaikan</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mb-3">Klik pada bagian sel bergaris merah berkedip untuk memperbaikinya!</p>
+
+                    <div class="overflow-x-auto border border-slate-300 rounded-xl bg-slate-100 p-1 text-[11px]">
+                        <table class="w-full bg-white border-collapse text-center">
+                            <thead>
+                                <tr id="excel-row-1" class="bg-amber-100 border-b border-amber-300 cursor-pointer hover:bg-amber-200 transition-colors" onclick="fixExcelError(1)">
+                                    <td colspan="4" class="p-2 font-bold text-amber-900 text-left">
+                                        <i class="fa-solid fa-circle-exclamation text-red-500 mr-1"></i> [Baris 1 Bad Title]: "DAFTAR PESERTA LOMBA HARI SANTRI 2026" (Klik Hapus!)
+                                    </td>
+                                </tr>
+                                <tr class="bg-slate-200 text-slate-700 font-bold border-b border-slate-300">
+                                    <td class="p-2 border">No</td>
+                                    <td class="p-2 border">NIS</td>
+                                    <td class="p-2 border">Nama_Siswa</td>
+                                    <td class="p-2 border">Kelas</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="p-2 border">1</td>
+                                    <td id="excel-nis" class="p-2 border bg-red-50 text-red-600 font-bold cursor-pointer hover:bg-red-100" onclick="fixExcelError(2)">
+                                        1234 <i class="fa-solid fa-wrench text-[9px]"></i>
+                                    </td>
+                                    <td class="p-2 border">Aisyah Putri</td>
+                                    <td class="p-2 border">X-1</td>
+                                </tr>
+                                <tr id="excel-blank-row" class="bg-red-100 border-b border-red-300 cursor-pointer hover:bg-red-200" onclick="fixExcelError(3)">
+                                    <td colspan="4" class="p-1.5 text-red-800 text-xs italic font-semibold">
+                                        [Baris Kosong Di Antara Data] (Klik Hapus!)
+                                    </td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="p-2 border">2</td>
+                                    <td class="p-2 border">01235</td>
+                                    <td class="p-2 border">Bagas Pratama</td>
+                                    <td class="p-2 border">X-2</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Live Checklist 5 Butir (Sesuai Indikator TP2) -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2">Daftar Periksa Mutu Data Excel:</h4>
+                    <div class="space-y-1.5 text-xs" id="checklist-box">
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-1"><i class="fa-regular fa-square"></i> Header di Baris 1 Utama</div>
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-2"><i class="fa-regular fa-square"></i> Format NIS Berjenis Text (Angka '0' Tidak Hilang)</div>
+                        <div class="flex items-center gap-2 text-slate-400" id="chk-3"><i class="fa-regular fa-square"></i> Bebas Baris Kosong Di Tengah Data</div>
+                        <div class="flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-square-check"></i> Tidak ada sel gabungan (Merged Cells)</div>
+                        <div class="flex items-center gap-2 text-emerald-600 font-semibold"><i class="fa-solid fa-square-check"></i> Satu Baris = Satu Record Data Siswa</div>
+                    </div>
+                </div>
+                
+                <!-- Flipped Classroom LMS Integration -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-google text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Ruang Diskusi LMS (A6)</p>
+                            <p class="text-[10px] text-slate-600">Tanggapi pertanyaan tabel Excel di LMS.</p>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-700" onclick="alert('Membuka Google Classroom Kelas X-1...')">Buka LMS</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function fixExcelError(errorId) {
+        playSound('click');
+        if (!state.unit2.errorsFixed.includes(errorId)) {
+            state.unit2.errorsFixed.push(errorId);
+        }
+
+        if (errorId === 1) {
+            const r1 = document.getElementById('excel-row-1');
+            r1.style.display = 'none';
+            document.getElementById('chk-1').className = 'flex items-center gap-2 text-emerald-600 font-semibold';
+            document.getElementById('chk-1').innerHTML = '<i class="fa-solid fa-square-check"></i> Header di Baris 1 Utama';
+        } else if (errorId === 2) {
+            const nis = document.getElementById('excel-nis');
+            nis.className = 'p-2 border bg-emerald-100 text-emerald-800 font-bold';
+            nis.innerHTML = '01234 ✓';
+            document.getElementById('chk-2').className = 'flex items-center gap-2 text-emerald-600 font-semibold';
+            document.getElementById('chk-2').innerHTML = '<i class="fa-solid fa-square-check"></i> Format NIS Berjenis Text (0 Ditampilkan)';
+        } else if (errorId === 3) {
+            const blank = document.getElementById('excel-blank-row');
+            blank.style.display = 'none';
+            document.getElementById('chk-3').className = 'flex items-center gap-2 text-emerald-600 font-semibold';
+            document.getElementById('chk-3').innerHTML = '<i class="fa-solid fa-square-check"></i> Bebas Baris Kosong Di Tengah Data';
+        }
+
+        document.getElementById('fix-count').textContent = `${state.unit2.errorsFixed.length}/3 Perbaikan`;
+
+        if (state.unit2.errorsFixed.length === 3) {
+            playSound('success');
+            unlockUnit('unit2');
+            setTimeout(() => {
+                showModal(
+                    '<i class="fa-solid fa-award text-emerald-600 text-6xl"></i>',
+                    'Lencana "Ahli Data Excel" Terbuka!',
+                    'Semua kesalahan struktur tabel telah berhasil diperbaiki. Data siap digunakan dalam Mail Merge. Lencana Unit 2 berhasil didapatkan!',
+                    () => navigate('home')
+                );
+            }, 300);
+        }
+    }
+
+    // ==========================================
+    // 5. UNIT 3: DOKUMEN & MERGE FIELD (SIMULASI WORD 7 LANGKAH)
+    // ==========================================
+    function renderUnit3() {
+        updateHeader('Unit 3: Dokumen & Field', 'Simulasi Word 7 Langkah (15 min)', true, 'unit3');
+        state.unit3.step = 0;
+        state.unit3.mistakes = 0;
+
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-3 flex flex-col h-full">
+                <!-- Video V2 Screencast Demonstrasi 7 Langkah -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi 7 Langkah Mail Merge di Tab Mailings')">
+                    <div class="w-12 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xl shrink-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Demonstrasi 7 Langkah</h4>
+                        <p class="text-[10px] text-slate-500">Tonton sebelum mencoba simulasi di bawah.</p>
+                    </div>
+                    <i class="fa-regular fa-circle-play text-blue-500 text-2xl ml-auto"></i>
+                </div>
+
+                <!-- Panel Instruksi & Scaffolding Dynamic (Vygotsky ZPD) -->
+                <div id="scaffold-box" class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all">
+                    <i id="scaffold-icon" class="fa-solid fa-circle-info text-blue-600 text-base mt-0.5"></i>
+                    <div>
+                        <span id="scaffold-title" class="font-bold block text-blue-950 mb-0.5">Misi Simulasi (Langkah 1/7):</span>
+                        <span id="scaffold-text">Klik tab <strong>"Mailings"</strong> di pita menu Microsoft Word tiruan di bawah ini untuk memulai!</span>
+                    </div>
+                </div>
+
+                <!-- Word Desktop Ribbon Simulation Container -->
+                <div class="border border-slate-300 rounded-2xl bg-slate-200 overflow-hidden shadow-sm flex-1 flex flex-col" onclick="handleWrongStep(event)">
+                    
+                    <!-- Ribbon Toolbar -->
+                    <div class="bg-white border-b border-slate-300" onclick="event.stopPropagation()">
+                        <div class="flex px-1 pt-1 bg-slate-100 border-b border-slate-300 text-slate-600">
+                            <div class="ribbon-tab" onclick="handleWrongStep(event)">File</div>
+                            <div class="ribbon-tab active" id="tab-home">Home</div>
+                            <div class="ribbon-tab" onclick="handleWrongStep(event)">Insert</div>
+                            <div id="tab-mailings" class="ribbon-tab pulse-btn bg-blue-100 font-bold" onclick="simStep(1, event)">Mailings</div>
+                            <div class="ribbon-tab" onclick="handleWrongStep(event)">View</div>
+                        </div>
+
+                        <!-- Mailings Action Tools -->
+                        <div id="toolbar-mailings" class="flex gap-1 p-2 bg-slate-50 overflow-x-auto opacity-40 pointer-events-none transition-opacity">
+                            <div id="btn-start-merge" class="ribbon-btn w-16" onclick="simStep(2, event)">
+                                <i class="fa-regular fa-envelope text-slate-700 text-sm mb-1"></i>
+                                <span>Start Merge</span>
+                            </div>
+                            <div id="btn-select-recip" class="ribbon-btn w-16" onclick="simStep(3, event)">
+                                <i class="fa-solid fa-users text-slate-700 text-sm mb-1"></i>
+                                <span>Select Recip.</span>
+                            </div>
+                            <div class="w-px bg-slate-300 mx-1"></div>
+                            <div id="btn-insert-field" class="ribbon-btn w-16 disabled" onclick="simStep(4, event)">
+                                <i class="fa-regular fa-square-plus text-slate-700 text-sm mb-1"></i>
+                                <span>Insert Field</span>
+                            </div>
+                            <div class="w-px bg-slate-300 mx-1"></div>
+                            <div id="btn-preview" class="ribbon-btn w-16 disabled" onclick="simStep(5, event)">
+                                <i class="fa-solid fa-magnifying-glass text-slate-700 text-sm mb-1"></i>
+                                <span>Preview</span>
+                            </div>
+                            <div id="btn-finish" class="ribbon-btn w-16 disabled" onclick="simStep(6, event)">
+                                <i class="fa-solid fa-flag-checkered text-slate-700 text-sm mb-1"></i>
+                                <span>Finish</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Document View -->
+                    <div class="p-4 flex-1 flex justify-center bg-slate-300 overflow-y-auto" onclick="event.stopPropagation()">
+                        <div class="bg-white w-full max-w-[320px] min-h-[300px] shadow-md p-5 text-[11px] text-slate-800 leading-relaxed font-serif rounded-sm border border-slate-200">
+                            <p class="text-right mb-3 text-slate-500">Temanggung, 22 Oktober 2026</p>
+                            <p class="mb-2">Kepada Yth.<br>
+                               <span id="doc-nama" class="inline-block bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded border border-blue-200 min-w-[110px] min-h-[20px] font-sans font-semibold"></span><br>
+                               Di Tempat
+                            </p>
+                            <p class="mt-3 text-justify text-slate-700 indent-4">
+                                Mengharap kehadiran Bapak/Ibu Wali Murid dari <span id="doc-siswa" class="bg-blue-50 px-1 font-sans text-blue-700 border border-blue-200 rounded">...</span> kelas <span id="doc-kelas" class="bg-blue-50 px-1 font-sans text-blue-700 border border-blue-200 rounded">...</span> pada acara Rapat Evaluasi Pembelajaran.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aktivitas Tambahan (Kuis TP3) -->
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-2">
+                    <button onclick="showHelpModal()" class="w-1/3 bg-amber-500 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-600 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-lightbulb"></i> Petunjuk
+                    </button>
+                    <button onclick="checkOrderQuiz()" class="w-2/3 bg-slate-800 text-white font-bold py-2 rounded-xl text-xs hover:bg-slate-900">
+                        <i class="fa-solid fa-list-ol mr-1"></i> Urutan 7 Langkah
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    function handleWrongStep(e) {
+        if(e) e.stopPropagation();
+        playSound('error');
+        state.unit3.mistakes++;
+        updateScaffoldingUI(false);
+    }
+
+    function simStep(stepNum, e) {
+        if(e) e.stopPropagation();
+        playSound('click');
+
+        if (stepNum !== state.unit3.step + 1) {
+            handleWrongStep();
+            return;
+        }
+
+        state.unit3.step = stepNum;
+        state.unit3.mistakes = 0;
+
+        const scaffoldBox = document.getElementById('scaffold-box');
+        const scaffoldTitle = document.getElementById('scaffold-title');
+        const scaffoldText = document.getElementById('scaffold-text');
+        
+        if (stepNum === 1) {
+            document.getElementById('tab-mailings').classList.remove('pulse-btn');
+            document.getElementById('toolbar-mailings').classList.remove('opacity-40', 'pointer-events-none');
+            document.getElementById('btn-start-merge').classList.add('pulse-btn', 'bg-blue-100');
+            
+            scaffoldTitle.textContent = "Langkah 2/7 Selesai!";
+            scaffoldText.textContent = "Bagus! Sekarang klik tombol 'Start Merge' (pilih Letters) untuk memulai format surat.";
+        }
+        else if (stepNum === 2) {
+            document.getElementById('btn-start-merge').classList.remove('pulse-btn', 'bg-blue-100');
+            document.getElementById('btn-select-recip').classList.add('pulse-btn', 'bg-blue-100');
+            
+            scaffoldTitle.textContent = "Langkah 3/7 Selesai!";
+            scaffoldText.textContent = "Sip! Sekarang hubungkan data Excel. Klik tombol 'Select Recip.' (Select Recipients).";
+        }
+        else if (stepNum === 3) {
+            document.getElementById('btn-select-recip').classList.remove('pulse-btn', 'bg-blue-100');
+            
+            showModal(
+                '<i class="fa-solid fa-file-excel text-green-600"></i>',
+                'Data Excel Terhubung!',
+                'Berkas "data_siswa_x1.xlsx" terhubung! Baris 1 otomatis dikenali sebagai Header.',
+                () => {
+                    document.getElementById('btn-insert-field').classList.remove('disabled');
+                    document.getElementById('btn-insert-field').classList.add('pulse-btn', 'bg-blue-100');
+                    scaffoldTitle.textContent = "Langkah 4/7 Selesai!";
+                    scaffoldText.textContent = "Data terhubung! Sekarang klik 'Insert Field' untuk memasukkan penanda «Nama_Wali».";
+                }
+            );
+        }
+        else if (stepNum === 4) {
+            document.getElementById('btn-insert-field').classList.remove('pulse-btn', 'bg-blue-100');
+            document.getElementById('doc-nama').textContent = '«Nama_Wali»';
+            document.getElementById('doc-siswa').textContent = '«Nama_Siswa»';
+            document.getElementById('doc-kelas').textContent = '«Kelas»';
+            
+            document.getElementById('btn-preview').classList.remove('disabled');
+            document.getElementById('btn-preview').classList.add('pulse-btn', 'bg-blue-100');
+            scaffoldTitle.textContent = "Langkah 5/7 Selesai!";
+            scaffoldText.textContent = "Merge Fields disisipkan! Klik 'Preview' (Kaca Pembesar) untuk melihat hasilnya.";
+        }
+        else if (stepNum === 5) {
+            document.getElementById('btn-preview').classList.remove('pulse-btn', 'bg-blue-100');
+            document.getElementById('doc-nama').textContent = 'Bpk. Ronggowisnu G.';
+            document.getElementById('doc-siswa').textContent = 'Aisyah Putri';
+            document.getElementById('doc-kelas').textContent = 'X-1';
+            
+            document.getElementById('doc-nama').className = 'inline-block bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-300 font-sans font-bold';
+            
+            document.getElementById('btn-finish').classList.remove('disabled');
+            document.getElementById('btn-finish').classList.add('pulse-btn', 'bg-blue-100');
+            scaffoldTitle.textContent = "Langkah 6/7 Selesai!";
+            scaffoldText.textContent = "Pratinjau tampil sempurna! Terakhir, klik 'Finish' (Finish & Merge) untuk mencetak dokumen.";
+        }
+        else if (stepNum === 6) {
+            document.getElementById('btn-finish').classList.remove('pulse-btn', 'bg-blue-100');
+            playSound('success');
+            unlockUnit('unit3');
+            showModal(
+                '<i class="fa-solid fa-award text-blue-600 text-6xl"></i>',
+                'Lencana "Master 7 Langkah" Terbuka!',
+                'Selamat! Kamu telah menguasai 7 langkah utama Mail Merge. Lencana Unit 3 berhasil didapatkan!',
+                () => navigate('home')
+            );
+        }
+    }
+
+    // Scaffolding 3 Level Logic (ADDIE Design Rule)
+    function updateScaffoldingUI(isSuccess) {
+        const box = document.getElementById('scaffold-box');
+        const icon = document.getElementById('scaffold-icon');
+        const title = document.getElementById('scaffold-title');
+        const text = document.getElementById('scaffold-text');
+
+        if (!isSuccess) {
+            if (state.unit3.mistakes === 1) {
+                box.className = "bg-amber-50 border border-amber-300 text-amber-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all";
+                icon.className = "fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5";
+                title.textContent = "Petunjuk Level 1 (Arah Visual):";
+                text.textContent = "Perhatikan posisi tombol yang berkedip biru atau disorot pada menu atas.";
+            } else if (state.unit3.mistakes >= 2) {
+                box.className = "bg-rose-50 border border-rose-300 text-rose-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all";
+                icon.className = "fa-solid fa-circle-xmark text-rose-600 text-base mt-0.5";
+                title.textContent = "Petunjuk Level 2 (Kunci Solusi):";
+                if (state.unit3.step === 0) text.textContent = "Klik tab 'Mailings' di atas ribbon.";
+                else if (state.unit3.step === 1) text.textContent = "Klik tombol 'Start Merge'.";
+                else if (state.unit3.step === 2) text.textContent = "Klik tombol 'Select Recip.'.";
+                else if (state.unit3.step === 3) text.textContent = "Klik tombol 'Insert Field'.";
+                else if (state.unit3.step === 4) text.textContent = "Klik tombol 'Preview'.";
+                else if (state.unit3.step === 5) text.textContent = "Klik tombol 'Finish'.";
+            }
+        }
+    }
+
+    function checkOrderQuiz() {
+        showModal(
+            '<i class="fa-solid fa-list-check text-blue-600"></i>',
+            'Urutan 7 Langkah Mail Merge',
+            '1. Buat Dokumen Master (Word)\n2. Buka Tab Mailings -> Start Merge\n3. Select Recipients (Pilih Excel)\n4. Insert Merge Field di Posisi Tepat\n5. Preview Results\n6. Finish & Merge',
+            null
+        );
+    }
+
+    // ==========================================
+    // 6. UNIT 4: PRATINJAU & PERBAIKAN (KLINIK KESALAHAN)
+    // ==========================================
+    function renderUnit4() {
+        updateHeader('Unit 4: Klinik Kesalahan', 'Diagnosis & Troubleshoot (15 min)', true, 'unit4');
+
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Video V2 Screencast Demonstrasi -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi memperbaiki Format Tanggal dan Angka dari Excel ke Word')">
+                    <div class="w-12 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 text-xl shrink-0">
+                        <i class="fa-solid fa-desktop"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Troubleshoot Error</h4>
+                        <p class="text-[10px] text-slate-500">Pelajari solusi format tanggal/angka.</p>
+                    </div>
+                    <i class="fa-regular fa-circle-play text-amber-500 text-2xl ml-auto"></i>
+                </div>
+
+                <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl text-xs text-amber-900 leading-relaxed">
+                    <span class="font-bold block text-amber-950 mb-0.5"><i class="fa-solid fa-stethoscope text-amber-600 mr-1"></i> Klinik Diagnosis Kesalahan (HOTS Level C4):</span>
+                    Sesuai indikator TP4, analisislah 3 kasus gagal gabung (Mail Merge) berikut dan temukan solusinya secara tepat!
+                </div>
+
+                <!-- Case 1: Field Kosong -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-brand-navy">Kasus 1: Merge Field Kosong / Undefined</span>
+                        <span id="case-badge-0" class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Belum Selesai</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 rounded-xl text-xs font-mono text-slate-700">
+                        Hasil Gabungan: "Kepada Yth. «Nama_Wali_Siswa»" (Teks nama tidak muncul!)
+                    </div>
+                    <div class="text-xs space-y-1.5">
+                        <label class="block font-semibold text-slate-700">Penyebab Utama & Solusi:</label>
+                        <select id="case-sol-0" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                            <option value="">-- Pilih Diagnosis --</option>
+                            <option value="wrong">Printer tidak terhubung ke komputer</option>
+                            <option value="correct">Nama kolom header Excel tidak cocok dengan nama Merge Field -> Hapus & Sisipkan Ulang Field yang Sesuai</option>
+                        </select>
+                    </div>
+                    <button onclick="solveCase(0)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 1</button>
+                </div>
+
+                <!-- Case 2: NIS Hilang Angka 0 -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-brand-navy">Kasus 2: NIS "0123" Berubah Jadi "123"</span>
+                        <span id="case-badge-1" class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Belum Selesai</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 rounded-xl text-xs font-mono text-slate-700">
+                        Hasil Gabungan: NIS: 123 (Angka '0' di depan terhapus otomatis)
+                    </div>
+                    <div class="text-xs space-y-1.5">
+                        <label class="block font-semibold text-slate-700">Penyebab Utama & Solusi:</label>
+                        <select id="case-sol-1" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                            <option value="">-- Pilih Diagnosis --</option>
+                            <option value="correct">Excel membaca NIS sebagai Number -> Ubah Format Kolom NIS di Excel menjadi Text</option>
+                            <option value="wrong">File Word terlampau besar</option>
+                        </select>
+                    </div>
+                    <button onclick="solveCase(1)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 2</button>
+                </div>
+
+                <!-- Case 3: Format Tanggal Berubah -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs text-brand-navy">Kasus 3: Tanggal "22/10/2026" Jadi "10/22/2026"</span>
+                        <span id="case-badge-2" class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">Belum Selesai</span>
+                    </div>
+                    <div class="p-2.5 bg-slate-100 rounded-xl text-xs font-mono text-slate-700">
+                        Hasil Gabungan: Temanggung, 10/22/2026 (Format tanggal US default)
+                    </div>
+                    <div class="text-xs space-y-1.5">
+                        <label class="block font-semibold text-slate-700">Penyebab Utama & Solusi:</label>
+                        <select id="case-sol-2" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                            <option value="">-- Pilih Diagnosis --</option>
+                            <option value="correct">Pengaturan bahasa bawaan sistem -> Tambahkan Switch Format Tanggal \\@ "dd MMMM yyyy" di Word</option>
+                            <option value="wrong">Ketik tanggal manual satu-satu</option>
+                        </select>
+                    </div>
+                    <button onclick="solveCase(2)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 3</button>
+                </div>
+                
+                <!-- Flipped Classroom LMS Integration -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-brands fa-google text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-xs font-bold text-slate-800">Ruang Diskusi LMS (A6)</p>
+                            <p class="text-[10px] text-slate-600">Bagikan error log kelompokmu di LMS.</p>
+                        </div>
+                    </div>
+                    <button class="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-700" onclick="alert('Membuka Google Classroom Kelas X-1...')">Buka LMS</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function solveCase(caseIdx) {
+        const sol = document.getElementById(`case-sol-${caseIdx}`).value;
+        if (sol === 'correct') {
+            playSound('success');
+            state.unit4.solvedCases[caseIdx] = true;
+            document.getElementById(`case-badge-${caseIdx}`).className = 'text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full';
+            document.getElementById(`case-badge-${caseIdx}`).textContent = 'Teratasi ✓';
+
+            const allSolved = state.unit4.solvedCases.every(Boolean);
+            if (allSolved) {
+                unlockUnit('unit4');
+                showModal(
+                    '<i class="fa-solid fa-award text-amber-600 text-6xl"></i>',
+                    'Lencana "Dokter Mail Merge" Terbuka!',
+                    'Kamu berhasil menganalisis dan memperbaiki 3 kasus gagal gabung secara tepat. Lencana Unit 4 berhasil didapatkan!',
+                    () => navigate('home')
+                );
+            } else {
+                alert('Diagnosis tepat! Lanjutkan memecahkan kasus berikutnya.');
+            }
+        } else {
+            playSound('error');
+            alert('Diagnosis kurang tepat. Periksa kembali teori penyebab eror pada modul.');
+        }
+    }
+
+    // ==========================================
+    // 7. UNIT 5: PROYEK & REFLEKSI AKHIR (SRL & RUBRIK)
+    // ==========================================
+    function renderUnit5() {
+        updateHeader('Unit 5: Proyek & Refleksi', 'Proyek Hari Santri & SRL (10 min)', true, 'unit5');
+
+        mainContent.innerHTML = `
+            <div class="fade-in space-y-4">
+                <!-- Case Brief Proyek -->
+                <div class="bg-gradient-to-r from-rose-900 to-brand-navy text-white p-4 rounded-2xl shadow-sm">
+                    <span class="bg-rose-400/30 text-rose-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-300/30 mb-2 inline-block">
+                        Proyek Praktikum Laboratorium (Pair Work)
+                    </span>
+                    <h3 class="font-extrabold text-sm mb-1">Misi: Sertifikat Massal Lomba Hari Santri</h3>
+                    <p class="text-xs text-rose-100 leading-relaxed">
+                        Buatlah Sumber Data Excel berisi 10 nama pemenang lomba Hari Santri dan sambungkan ke Sertifikat Master di Word secara berpasangan!
+                    </p>
+                </div>
+
+                <!-- Self / Peer Review Rubric Checklist -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-square-poll-vertical text-rose-600"></i>
+                        <span>Rubrik Penilaian Mandiri / Teman Sebaya:</span>
+                    </h4>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                            <input type="checkbox" id="pchk-0" onchange="updateProjectProgress()" class="text-rose-600 w-4 h-4 rounded">
+                            <span>1. Data Excel Rapi (Header Baris 1, Tanpa Merged Cell)</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                            <input type="checkbox" id="pchk-1" onchange="updateProjectProgress()" class="text-rose-600 w-4 h-4 rounded">
+                            <span>2. Dokumen Master Word (Merge Field «Nama» & «Predikat» Presisi)</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                            <input type="checkbox" id="pchk-2" onchange="updateProjectProgress()" class="text-rose-600 w-4 h-4 rounded">
+                            <span>3. Hasil Gabungan 10 Sertifikat Tanpa Eror Format</span>
+                        </label>
+                        <label class="flex items-center gap-2.5 p-2 bg-slate-50 rounded-xl cursor-pointer">
+                            <input type="checkbox" id="pchk-3" onchange="updateProjectProgress()" class="text-rose-600 w-4 h-4 rounded">
+                            <span>4. Kerja Berpasangan & Mencatat Error Log</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Jurnal Refleksi Akhir SRL -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-journal-whills text-purple-600"></i>
+                        <span>Jurnal Refleksi Pembelajaran (SRL):</span>
+                    </h4>
+                    <div class="space-y-2 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">1. Bagian mana yang paling kamu kuasai?</label>
+                            <input type="text" id="srl-ref-1" placeholder="Contoh: Menghubungkan data Excel ke Word" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">2. Kendala apa yang masih ditemui?</label>
+                            <input type="text" id="srl-ref-2" placeholder="Contoh: Menyesuaikan format tanggal" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl">
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="finishUnit5()" class="w-full bg-rose-600 text-white font-bold py-3 rounded-2xl shadow-lg hover:bg-rose-700 transition-all text-xs">
+                    Simpan Proyek & Dapatkan Lencana "Penguasaan Total"
+                </button>
+            </div>
+        `;
+    }
+
+    function updateProjectProgress() {
+        playSound('click');
+        const c0 = document.getElementById('pchk-0').checked;
+        const c1 = document.getElementById('pchk-1').checked;
+        const c2 = document.getElementById('pchk-2').checked;
+        const c3 = document.getElementById('pchk-3').checked;
+        state.unit5.checklist = [c0, c1, c2, c3];
+    }
+
+    function finishUnit5() {
+        const r1 = document.getElementById('srl-ref-1').value;
+        const r2 = document.getElementById('srl-ref-2').value;
+
+        if (!r1 || !r2) {
+            alert('Mohon isi Jurnal Refleksi singkat sebelum menyelesaikan modul.');
+            return;
+        }
+
+        playSound('badge');
+        unlockUnit('unit5');
+        showModal(
+            '<i class="fa-solid fa-trophy text-amber-500 text-6xl"></i>',
+            'SELAMAT! MODUL TUNTAS 100%',
+            'Kamu telah berhasil menyelesaikan seluruh 6 Unit Belajar Mail Merge Sekali Klik dengan sangat luar biasa! Lencana Penguasaan Total berhasil didapatkan!',
+            () => navigate('home')
+        );
+    }
+
+    // Initialize App View
+    window.onload = () => {
+        renderHome();
+    };
+</script>
+</body>
+</html>
