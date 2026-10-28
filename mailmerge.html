@@ -320,15 +320,15 @@
             `,
             unit2: `
                 <p><strong>Petunjuk Unit 2:</strong></p>
-                <p>Klik pada sel bergaris merah berkedip di tabel Excel untuk memicu perbaikan otomatis (hapus baris judul atas, perbaiki NIS text, hapus baris kosong).</p>
+                <p>Tonton video tutorial penyiapan tabel Excel, lalu klik pada sel bergaris merah berkedip di tabel Excel untuk memicu perbaikan otomatis.</p>
             `,
             unit3: `
                 <p><strong>Petunjuk Unit 3:</strong></p>
-                <p>Ikuti simulasi 7 langkah Mail Merge pada pita menu Word. Jika salah mengeklik, tombol <em>Petunjuk</em> akan memberikan bantuan bertingkat (3 Level Scaffolding).</p>
+                <p>Tonton video demonstrasi 7 langkah, lalu ikuti simulasi Mail Merge pada pita menu Word.</p>
             `,
             unit4: `
                 <p><strong>Petunjuk Unit 4:</strong></p>
-                <p>Analisislah 3 kasus gagal gabung Mail Merge dan tentukan diagnosis penyebab serta solusinya dengan tepat.</p>
+                <p>Tonton video troubleshooting error, lalu analisislah 3 kasus gagal gabung Mail Merge dan tentukan diagnosis penyebab serta solusinya.</p>
             `,
             unit5: `
                 <p><strong>Petunjuk Unit 5:</strong></p>
@@ -401,7 +401,6 @@
         const completedCount = Object.values(state.progress).filter(Boolean).length;
         const percent = Math.round((completedCount / 6) * 100);
 
-        // Determine next recommended unit
         let nextUnitTitle = 'Unit 0: Mulai dari Sini';
         for (let i = 0; i < units.length; i++) {
             if (!state.progress[units[i].id]) {
@@ -413,7 +412,7 @@
 
         let html = `
             <div class="fade-in">
-                <!-- Banner Target Belajar (Aligned Wireframe Layar 1) -->
+                <!-- Banner Target Belajar -->
                 <div class="bg-gradient-to-r from-brand-navy to-brand-royal text-white p-4 rounded-2xl shadow-md mb-5 relative overflow-hidden">
                     <div class="relative z-10">
                         <span class="bg-blue-400/30 text-blue-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-300/30 mb-2 inline-block">
@@ -422,7 +421,6 @@
                         <h2 class="font-extrabold text-sm sm:text-base mb-1">Halo, siswa Kelas X-1!</h2>
                         <p class="text-xs text-blue-100 mb-2">Target hari ini: <span class="font-bold text-amber-300">${nextUnitTitle}</span></p>
                         
-                        <!-- Progress Bar Wireframe -->
                         <div class="bg-black/20 p-2 rounded-xl backdrop-blur-sm border border-white/10 mt-3">
                             <div class="flex justify-between items-center text-[11px] font-bold mb-1">
                                 <span class="text-blue-200">Kemajuan Modul</span>
@@ -476,7 +474,7 @@
         html += `
                 </div>
 
-                <!-- Seksi "Lencana Saya" (Presisi Wireframe Layar 1) -->
+                <!-- Seksi "Lencana Saya" -->
                 <div id="section-badges" class="mt-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2">
@@ -546,7 +544,6 @@
         
         mainContent.innerHTML = `
             <div class="fade-in space-y-5">
-                <!-- Kartu SRL Orientasi -->
                 <div class="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm text-center">
                     <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-2 text-2xl shadow-inner">
                         <i class="fa-solid fa-bullseye"></i>
@@ -557,7 +554,6 @@
                     </p>
                 </div>
 
-                <!-- Bagian 1: Kuis Diagnostik (5 Soal Sesuai Tugas 2) -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-clipboard-question text-purple-500"></i>
@@ -602,7 +598,6 @@
                     </div>
                 </div>
 
-                <!-- Bagian 2: Target SRL -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-flag text-purple-500"></i>
@@ -657,30 +652,29 @@
     }
 
     // ==========================================
-    // 3. UNIT 1: MENGENAL MAIL MERGE (KONSEP & 3 KOMPONEN)
+    // 3. UNIT 1: MENGENAL MAIL MERGE (DENGAN EMBED VIDEO V1)
     // ==========================================
     function renderUnit1() {
         updateHeader('Unit 1: Mengenal Mail Merge', 'Konsep Dasar & 3 Komponen (10 min)', true, 'unit1');
         
         mainContent.innerHTML = `
             <div class="fade-in space-y-4">
-                <!-- Pemantik Visual V1 dengan YouTube Iframe -->
+                <!-- Video V1: AI Generated Pemantik via YouTube Embed -->
                 <div class="bg-gradient-to-r from-indigo-900 to-brand-navy text-white p-4 rounded-2xl shadow-sm">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-8 h-8 rounded-lg bg-indigo-500/30 flex items-center justify-center text-amber-300">
                             <i class="fa-solid fa-film"></i>
                         </div>
-                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V1: Pemantik</h3>
+                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V1: Pemantik Animasi (AI)</h3>
                     </div>
                     <p class="text-xs text-indigo-100 leading-relaxed mb-3">
-                        Bayangkan mengetik 30 Surat Undangan Rapat Wali Murid secara manual satu per satu vs Sekali Klik dengan Mail Merge!
+                        Tonton video animasi pemantik berikut untuk memahami betapa pentingnya Mail Merge dibanding mengetik manual!
                     </p>
                     
-                    <!-- KODE VIDEO YOUTUBE EMBED -->
                     <div class="w-full aspect-video rounded-xl overflow-hidden border border-indigo-400/30 bg-black/40">
                         <iframe class="w-full h-full" 
-                                src="https://www.youtube.com/embed/EesE9FtQISk?rel=0" 
-                                title="Video Pemantik Mail Merge" 
+                                src="https://www.youtube.com/embed/EesE9FtQISk" 
+                                title="Video Pemantik Mail Merge AI" 
                                 frameborder="0" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                 allowfullscreen>
@@ -688,7 +682,7 @@
                     </div>
                 </div>
 
-                <!-- Interactive Match Exercise (A1) -->
+                <!-- Interactive Match Exercise -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-hand-pointer text-indigo-600"></i>
@@ -726,7 +720,7 @@
                     </div>
                 </div>
 
-                <!-- Kuis Formatif (Sesuai Indikator TP1: 5 Soal) -->
+                <!-- Kuis Formatif (5 Soal) -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-xs text-brand-navy uppercase tracking-wider mb-3 flex items-center gap-2">
                         <i class="fa-solid fa-list-check text-indigo-600"></i>
@@ -764,7 +758,6 @@
                     </button>
                 </div>
 
-                <!-- Flipped Classroom LMS Integration -->
                 <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-3">
                         <i class="fa-brands fa-google text-2xl text-blue-600"></i>
@@ -806,23 +799,34 @@
     }
 
     // ==========================================
-    // 4. UNIT 2: DATA EXCEL (STRUKTUR TABEL & REPAIR TOOL)
+    // 4. UNIT 2: DATA EXCEL (DENGAN EMBED VIDEO V2 EXCEL)
     // ==========================================
     function renderUnit2() {
         updateHeader('Unit 2: Data Excel', 'Struktur Tabel & Sumber Data (12 min)', true, 'unit2');
         
         mainContent.innerHTML = `
             <div class="fade-in space-y-4">
-                <!-- Video V2 Screencast Demonstrasi -->
-                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi menyusun tabel Excel yang benar tanpa merged cells')">
-                    <div class="w-12 h-10 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 text-xl shrink-0">
-                        <i class="fa-solid fa-desktop"></i>
+                <!-- Video V2: Menyiapkan Tabel Excel (BWisMIkH-i0) -->
+                <div class="bg-gradient-to-r from-emerald-950 to-brand-emerald text-white p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/30 flex items-center justify-center text-amber-300">
+                            <i class="fa-solid fa-table"></i>
+                        </div>
+                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V2: Menyiapkan Tabel Excel</h3>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Menyiapkan Tabel Excel</h4>
-                        <p class="text-[10px] text-slate-500">Durasi: 90 Detik • Kursor disorot visual</p>
+                    <p class="text-xs text-emerald-100 leading-relaxed mb-3">
+                        Tonton video demonstrasi penyiapan tabel Excel yang benar sebelum menyambungkannya ke Word.
+                    </p>
+                    
+                    <div class="w-full aspect-video rounded-xl overflow-hidden border border-emerald-400/30 bg-black/40">
+                        <iframe class="w-full h-full" 
+                                src="https://www.youtube.com/embed/BWisMIkH-i0" 
+                                title="Video Tutorial Excel Mail Merge" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                        </iframe>
                     </div>
-                    <i class="fa-regular fa-circle-play text-emerald-500 text-2xl ml-auto"></i>
                 </div>
 
                 <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs text-emerald-900 leading-relaxed">
@@ -832,7 +836,7 @@
                     3. Format kolom angka penting (seperti NIS/WA) berformat <strong>Text</strong> agar '0' depan tidak hilang.
                 </div>
 
-                <!-- Interactive Spreadsheet Fixer (A2) -->
+                <!-- Interactive Spreadsheet Fixer -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2 flex items-center justify-between">
                         <span>Simulasi: Perbaiki Tabel Excel (TP2)</span>
@@ -880,7 +884,6 @@
                     </div>
                 </div>
 
-                <!-- Live Checklist 5 Butir (Sesuai Indikator TP2) -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                     <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2">Daftar Periksa Mutu Data Excel:</h4>
                     <div class="space-y-1.5 text-xs" id="checklist-box">
@@ -892,7 +895,6 @@
                     </div>
                 </div>
                 
-                <!-- Flipped Classroom LMS Integration -->
                 <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-3">
                         <i class="fa-brands fa-google text-2xl text-blue-600"></i>
@@ -948,7 +950,7 @@
     }
 
     // ==========================================
-    // 5. UNIT 3: DOKUMEN & MERGE FIELD (SIMULASI WORD 7 LANGKAH)
+    // 5. UNIT 3: DOKUMEN & MERGE FIELD (DENGAN EMBED VIDEO V2 MAILINGS)
     // ==========================================
     function renderUnit3() {
         updateHeader('Unit 3: Dokumen & Field', 'Simulasi Word 7 Langkah (15 min)', true, 'unit3');
@@ -957,19 +959,29 @@
 
         mainContent.innerHTML = `
             <div class="fade-in space-y-3 flex flex-col h-full">
-                <!-- Video V2 Screencast Demonstrasi 7 Langkah -->
-                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi 7 Langkah Mail Merge di Tab Mailings')">
-                    <div class="w-12 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 text-xl shrink-0">
-                        <i class="fa-solid fa-desktop"></i>
+                <!-- Video V2: Demonstrasi 7 Langkah Mail Merge (YgGwLlDlUME) -->
+                <div class="bg-gradient-to-r from-blue-950 to-brand-royal text-white p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/30 flex items-center justify-center text-amber-300">
+                            <i class="fa-solid fa-file-word"></i>
+                        </div>
+                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V2: Demonstrasi 7 Langkah Word</h3>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Demonstrasi 7 Langkah</h4>
-                        <p class="text-[10px] text-slate-500">Tonton sebelum mencoba simulasi di bawah.</p>
+                    <p class="text-xs text-blue-100 leading-relaxed mb-3">
+                        Tonton video demonstrasi langkah demi langkah tab Mailings Word sebelum mencoba simulasi interaktif di bawah.
+                    </p>
+                    
+                    <div class="w-full aspect-video rounded-xl overflow-hidden border border-blue-400/30 bg-black/40">
+                        <iframe class="w-full h-full" 
+                                src="https://www.youtube.com/embed/YgGwLlDlUME" 
+                                title="Video Demonstrasi 7 Langkah Mail Merge" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                        </iframe>
                     </div>
-                    <i class="fa-regular fa-circle-play text-blue-500 text-2xl ml-auto"></i>
                 </div>
 
-                <!-- Panel Instruksi & Scaffolding Dynamic (Vygotsky ZPD) -->
                 <div id="scaffold-box" class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs font-medium flex items-start gap-2.5 transition-all">
                     <i id="scaffold-icon" class="fa-solid fa-circle-info text-blue-600 text-base mt-0.5"></i>
                     <div>
@@ -978,10 +990,8 @@
                     </div>
                 </div>
 
-                <!-- Word Desktop Ribbon Simulation Container -->
                 <div class="border border-slate-300 rounded-2xl bg-slate-200 overflow-hidden shadow-sm flex-1 flex flex-col" onclick="handleWrongStep(event)">
                     
-                    <!-- Ribbon Toolbar -->
                     <div class="bg-white border-b border-slate-300" onclick="event.stopPropagation()">
                         <div class="flex px-1 pt-1 bg-slate-100 border-b border-slate-300 text-slate-600">
                             <div class="ribbon-tab" onclick="handleWrongStep(event)">File</div>
@@ -991,7 +1001,6 @@
                             <div class="ribbon-tab" onclick="handleWrongStep(event)">View</div>
                         </div>
 
-                        <!-- Mailings Action Tools -->
                         <div id="toolbar-mailings" class="flex gap-1 p-2 bg-slate-50 overflow-x-auto opacity-40 pointer-events-none transition-opacity">
                             <div id="btn-start-merge" class="ribbon-btn w-16" onclick="simStep(2, event)">
                                 <i class="fa-regular fa-envelope text-slate-700 text-sm mb-1"></i>
@@ -1018,7 +1027,6 @@
                         </div>
                     </div>
 
-                    <!-- Canvas Document View -->
                     <div class="p-4 flex-1 flex justify-center bg-slate-300 overflow-y-auto" onclick="event.stopPropagation()">
                         <div class="bg-white w-full max-w-[320px] min-h-[300px] shadow-md p-5 text-[11px] text-slate-800 leading-relaxed font-serif rounded-sm border border-slate-200">
                             <p class="text-right mb-3 text-slate-500">Temanggung, 22 Oktober 2026</p>
@@ -1033,7 +1041,6 @@
                     </div>
                 </div>
 
-                <!-- Aktivitas Tambahan (Kuis TP3) -->
                 <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex gap-2">
                     <button onclick="showHelpModal()" class="w-1/3 bg-amber-500 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-600 flex items-center justify-center gap-1">
                         <i class="fa-solid fa-lightbulb"></i> Petunjuk
@@ -1136,7 +1143,6 @@
         }
     }
 
-    // Scaffolding 3 Level Logic (ADDIE Design Rule)
     function updateScaffoldingUI(isSuccess) {
         const box = document.getElementById('scaffold-box');
         const icon = document.getElementById('scaffold-icon');
@@ -1173,23 +1179,34 @@
     }
 
     // ==========================================
-    // 6. UNIT 4: PRATINJAU & PERBAIKAN (KLINIK KESALAHAN)
+    // 6. UNIT 4: PRATINJAU & PERBAIKAN (DENGAN EMBED VIDEO V2 TROUBLESHOOT)
     // ==========================================
     function renderUnit4() {
         updateHeader('Unit 4: Klinik Kesalahan', 'Diagnosis & Troubleshoot (15 min)', true, 'unit4');
 
         mainContent.innerHTML = `
             <div class="fade-in space-y-4">
-                <!-- Video V2 Screencast Demonstrasi -->
-                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3 cursor-pointer hover:bg-slate-50" onclick="alert('Memutar V2 Screencast: Demonstrasi memperbaiki Format Tanggal dan Angka dari Excel ke Word')">
-                    <div class="w-12 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 text-xl shrink-0">
-                        <i class="fa-solid fa-desktop"></i>
+                <!-- Video V2: Troubleshoot Error (49PD-eir_Eo) -->
+                <div class="bg-gradient-to-r from-amber-950 to-brand-amber text-white p-4 rounded-2xl shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/30 flex items-center justify-center text-amber-300">
+                            <i class="fa-solid fa-stethoscope"></i>
+                        </div>
+                        <h3 class="font-bold text-xs uppercase tracking-wider">Video V2: Mengatasi Error Mail Merge</h3>
                     </div>
-                    <div>
-                        <h4 class="font-bold text-xs text-brand-navy">Video V2: Troubleshoot Error</h4>
-                        <p class="text-[10px] text-slate-500">Pelajari solusi format tanggal/angka.</p>
+                    <p class="text-xs text-amber-100 leading-relaxed mb-3">
+                        Tonton video troubleshooting berikut untuk mengetahui cara mengatasi error umum pada Mail Merge.
+                    </p>
+                    
+                    <div class="w-full aspect-video rounded-xl overflow-hidden border border-amber-400/30 bg-black/40">
+                        <iframe class="w-full h-full" 
+                                src="https://www.youtube.com/embed/49PD-eir_Eo" 
+                                title="Video Troubleshoot Mail Merge Error" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                allowfullscreen>
+                        </iframe>
                     </div>
-                    <i class="fa-regular fa-circle-play text-amber-500 text-2xl ml-auto"></i>
                 </div>
 
                 <div class="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl text-xs text-amber-900 leading-relaxed">
@@ -1257,7 +1274,6 @@
                     <button onclick="solveCase(2)" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-amber-700">Perbaiki Kasus 3</button>
                 </div>
                 
-                <!-- Flipped Classroom LMS Integration -->
                 <div class="bg-blue-50 border border-blue-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
                     <div class="flex items-center gap-3">
                         <i class="fa-brands fa-google text-2xl text-blue-600"></i>
@@ -1306,7 +1322,6 @@
 
         mainContent.innerHTML = `
             <div class="fade-in space-y-4">
-                <!-- Case Brief Proyek -->
                 <div class="bg-gradient-to-r from-rose-900 to-brand-navy text-white p-4 rounded-2xl shadow-sm">
                     <span class="bg-rose-400/30 text-rose-100 text-[10px] font-bold px-2 py-0.5 rounded-full border border-rose-300/30 mb-2 inline-block">
                         Proyek Praktikum Laboratorium (Pair Work)
@@ -1317,7 +1332,6 @@
                     </p>
                 </div>
 
-                <!-- Self / Peer Review Rubric Checklist -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                     <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-square-poll-vertical text-rose-600"></i>
@@ -1343,7 +1357,6 @@
                     </div>
                 </div>
 
-                <!-- Jurnal Refleksi Akhir SRL -->
                 <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                     <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-2">
                         <i class="fa-solid fa-journal-whills text-purple-600"></i>
